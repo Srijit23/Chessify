@@ -1,3 +1,7 @@
+import { startGame, getGameState } from './api.js';
+
+startGame().then(data => console.log(data));
+
 const { Server } = require('ws');
 let wss;
 

@@ -1,3 +1,4 @@
+
 let board = null;
 let game = new Chess();
 let stockfish = null;

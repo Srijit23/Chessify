@@ -1,3 +1,4 @@
+
 var Module = {
     wasmBinary: null,
     onRuntimeInitialized: function() {
