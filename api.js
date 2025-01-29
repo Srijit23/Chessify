@@ -1,4 +1,4 @@
-const serverURL = "https://chessify-server.onrender.com"; // Replace with your actual Render backend URL
+const serverURL = "https://chessify-ld3v.onrender.com"; // Replace with your actual Render backend URL
 
 export async function startGame() {
     try {
