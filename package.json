@@ -2,10 +2,10 @@
   "name": "chessify",
   "version": "1.0.0",
   "description": "Online multiplayer chess game",
-  "main": "api/socket.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node api/socket.js",
-    "dev": "node api/socket.js",
+    "start": "node server.js",
+    "dev": "node server.js",
     "deploy": "vercel"
   },
   "dependencies": {
