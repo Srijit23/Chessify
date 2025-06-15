@@ -10,33 +10,31 @@ let isConnected = false;
 // Connect to WebSocket server
 function connectToServer() {
     try {
-        // Use secure WebSocket for production, fallback to local for development
-        const wsUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'ws://localhost:3000'
-            : `wss://${window.location.hostname}`;
-            
+        // Always connect to your deployed WebSocket backend
+        const wsUrl = 'wss://chessify1-server.onrender.com';
+
         ws = new WebSocket(wsUrl);
-        
+
         ws.onopen = () => {
             console.log('Connected to server');
             isConnected = true;
             $('#createRoom, #joinRoom').prop('disabled', false);
             showStatus('Connected to server', 'success');
         };
-        
+
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
             console.log('Received:', data);
             handleServerMessage(data);
         };
-        
+
         ws.onclose = () => {
             console.log('Disconnected from server');
             isConnected = false;
             $('#createRoom, #joinRoom').prop('disabled', true);
             showError('Connection lost. Please refresh the page to reconnect.');
         };
-        
+
         ws.onerror = (error) => {
             console.error('WebSocket error:', error);
             showError('Connection error. Please check if the server is running.');
@@ -46,6 +44,7 @@ function connectToServer() {
         showError('Failed to connect to server. Please check if the server is running.');
     }
 }
+
 
 // Show status message
 function showStatus(message, type = 'info') {
