@@ -5,7 +5,7 @@ let playerColor = 'white'; // 'white' or 'black'
 let currentRoom = '';
 let isMyTurn = false;
 let isConnected = false;
-let tapSquare = null; // New: Stores the square of the currently selected piece for tap-to-move
+let tapSquare = null; // Stores the square of the currently selected piece for tap-to-move
 
 // Connect to WebSocket server
 function connectToServer() {
@@ -17,6 +17,7 @@ function connectToServer() {
         ws.onopen = () => {
             console.log('Connected to server');
             isConnected = true;
+            // ENABLE buttons ONLY when connected
             $('#createRoom, #joinRoom').prop('disabled', false);
             showStatus('Connected to server', 'success');
         };
@@ -30,6 +31,7 @@ function connectToServer() {
         ws.onclose = () => {
             console.log('Disconnected from server');
             isConnected = false;
+            // DISABLE buttons when disconnected
             $('#createRoom, #joinRoom').prop('disabled', true);
             showError('Connection lost. Please refresh the page to reconnect.');
         };
@@ -84,6 +86,9 @@ function handleServerMessage(data) {
             case 'draw_response':
                 handleDrawResponse(data);
                 break;
+            case 'chat_message': // Handle chat messages
+                addChatMessage(data.message, data.sender);
+                break;
             default:
                 console.log('Unknown message type:', data.type);
         }
@@ -93,7 +98,7 @@ function handleServerMessage(data) {
     }
 }
 
-// New: Click handling logic for squares
+// Click handling logic for squares
 function handleSquareClick(event) {
     const clickedSquare = this.getAttribute('data-square');
     console.log("Clicked square:", clickedSquare);
@@ -167,21 +172,17 @@ function handleSquareClick(event) {
     }
 }
 
-// New: Function to bind/re-bind square click handlers
+// Function to bind/re-bind square click handlers
 function bindSquareClickHandlers() {
-    // Get all square elements
     const squares = document.querySelectorAll('#board .square-55d63');
-
     squares.forEach(square => {
-        // Remove any existing native event listeners to prevent duplicates
-        square.removeEventListener('click', handleSquareClick);
-        // Add the new listener
-        square.addEventListener('click', handleSquareClick);
+        square.removeEventListener('click', handleSquareClick); // Remove existing
+        square.addEventListener('click', handleSquareClick); // Add new
     });
-    console.log("Square click handlers bound (native).");
+    console.log("Square click handlers bound.");
 }
 
-// New: Highlighting functions
+// Highlighting functions
 function highlightLegalMoves(sourceSquare) {
     removeHighlights(); // Always start by removing previous highlights
 
@@ -210,32 +211,29 @@ function deselectPiece() {
 }
 
 // Initialize the game board
-function initializeBoard(orientation) { // Added orientation parameter for dynamic setup
+function initializeBoard(orientation) {
     console.log("Initializing board...");
     if (board) {
         board.destroy(); // Destroy existing board instance to reset it
     }
 
     const config = {
-        draggable: false, // CHANGED: DRAG AND DROP DISABLED
+        draggable: false, // DRAG AND DROP DISABLED
         position: 'start',
         orientation: orientation, // Use the passed orientation
         pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
-        // onDragStart, onDrop, onSnapEnd are removed as draggable is false
         showNotation: true
     };
 
     board = Chessboard('board', config);
     $(window).resize(() => {
         board.resize();
-        bindSquareClickHandlers(); // Re-bind on resize for robustness
+        bindSquareClickHandlers(); // Re-bind on resize
     });
     updateStatus();
 
     // Initial binding of click handlers after board setup
-    // Use a small timeout to ensure DOM elements are fully in place
     setTimeout(bindSquareClickHandlers, 500);
-    console.log("Board initialized with orientation:", orientation);
 }
 
 // Handle room creation
@@ -257,9 +255,10 @@ function handleGameStart(data) {
     playerColor = data.color; // 'white' or 'black'
     game = new Chess(); // Reset the game state
 
-    // Initialize the board with the correct orientation before setting turn
-    initializeBoard(playerColor); // This ensures 'board' object is created
+    // Initialize the board with the correct orientation
+    initializeBoard(playerColor);
 
+    // Set turn based on initial game state and player color
     isMyTurn = (playerColor === 'white' && game.turn() === 'w') || (playerColor === 'black' && game.turn() === 'b');
 
     $('#currentRoom').text(currentRoom);
@@ -296,47 +295,6 @@ function handlePlayerDisconnect(data) {
     disableGameControls();
     deselectPiece(); // Deselect on disconnection
 }
-
-// New: Handle Draw Offer
-function handleDrawOffer(data) {
-    if (data.fromColor !== playerColor) { // If offer is from opponent
-        if (confirm(`Opponent offers a draw. Do you accept?`)) {
-            ws.send(JSON.stringify({
-                type: 'draw_response',
-                roomId: currentRoom,
-                accepted: true
-            }));
-            showStatus('Draw accepted. Game is a draw!', 'info');
-            game.reset(); // Reset game state for draw
-            board.start(); // Reset visual board
-            $('#moveHistory').empty();
-            disableGameControls();
-        } else {
-            ws.send(JSON.stringify({
-                type: 'draw_response',
-                roomId: currentRoom,
-                accepted: false
-            }));
-            showStatus('Draw declined.', 'info');
-        }
-    }
-}
-
-// New: Handle Draw Response
-function handleDrawResponse(data) {
-    if (data.accepted) {
-        showStatus('Opponent accepted the draw. Game is a draw!', 'info');
-        game.reset();
-        board.start();
-        $('#moveHistory').empty();
-        disableGameControls();
-    } else {
-        showStatus('Opponent declined the draw.', 'info');
-    }
-}
-
-// Removed onDragStart, onDrop, onSnapEnd functions
-// as draggable is set to false in the config.
 
 function playMoveSound(move) {
     const audio = new Audio();
@@ -391,27 +349,77 @@ function handleGameEnd(result) {
         roomId: currentRoom // Send roomId for the server to handle
     }));
     disableGameControls();
-    deselectPiece(); // Deselect on game end
+}
+
+// Handle Draw Offer (client-side confirmation)
+function handleDrawOffer(data) {
+    if (data.fromColor !== playerColor) { // If offer is from opponent
+        if (confirm(`Opponent offers a draw. Do you accept?`)) {
+            ws.send(JSON.stringify({
+                type: 'draw_response',
+                roomId: currentRoom,
+                accepted: true
+            }));
+            showStatus('Draw accepted. Game is a draw!', 'info');
+            game.reset(); // Reset game state for draw
+            board.start(); // Reset visual board
+            $('#moveHistory').empty();
+            disableGameControls();
+        } else {
+            ws.send(JSON.stringify({
+                type: 'draw_response',
+                roomId: currentRoom,
+                accepted: false
+            }));
+            showStatus('Draw declined.', 'info');
+        }
+    }
+}
+
+// Handle Draw Response
+function handleDrawResponse(data) {
+    if (data.accepted) {
+        showStatus('Opponent accepted the draw. Game is a draw!', 'info');
+        game.reset();
+        board.start();
+        $('#moveHistory').empty();
+        disableGameControls();
+    } else {
+        showStatus('Opponent declined the draw.', 'info');
+    }
+}
+
+// Chat functionality
+function addChatMessage(message, sender) {
+    const $chatBox = $('#chatBox');
+    const $message = $('<div>').addClass('chat-message');
+    $message.html(`<strong>${sender}:</strong> ${message}`);
+    $chatBox.append($message);
+    $chatBox.scrollTop($chatBox[0].scrollHeight); // Scroll to bottom
 }
 
 // Enable game controls
 function enableGameControls() {
     $('#resignBtn, #offerDrawBtn').prop('disabled', false);
+    $('#chatInput, #sendChat').prop('disabled', false); // Enable chat
 }
 
 // Disable game controls
 function disableGameControls() {
     $('#resignBtn, #offerDrawBtn').prop('disabled', true);
+    $('#chatInput, #sendChat').prop('disabled', true); // Disable chat
 }
 
 // Event listeners
 $(document).ready(() => {
-    // Connect to server when page loads
-    connectToServer();
-
     // Initial chessboard setup when the page loads, using a default 'white' orientation.
     // This ensures 'board' is initialized and ready for first interactions.
+    // Buttons start disabled and get enabled on WebSocket connection.
     initializeBoard('white');
+    $('#createRoom, #joinRoom').prop('disabled', true); // Start disabled
+
+    // Connect to server when page loads (this will enable buttons on open)
+    connectToServer();
 
     // Create room button click handler
     $('#createRoom').click(() => {
@@ -455,26 +463,55 @@ $(document).ready(() => {
     // Resign button click handler
     $('#resignBtn').click(() => {
         if (currentRoom && isConnected) {
-            ws.send(JSON.stringify({
-                type: 'game_over',
-                roomId: currentRoom,
-                result: 'resign',
-                winner: playerColor === 'white' ? 'black' : 'white'
-            }));
-            // Call handleGameOver directly for immediate client-side update
-            handleGameOver({ result: `${playerColor} resigned. ${playerColor === 'white' ? 'Black' : 'White'} wins!` });
+            if (confirm("Are you sure you want to resign?")) {
+                ws.send(JSON.stringify({
+                    type: 'game_over',
+                    roomId: currentRoom,
+                    result: 'resign',
+                    winner: playerColor === 'white' ? 'black' : 'white'
+                }));
+                handleGameOver({ result: `${playerColor} resigned. ${playerColor === 'white' ? 'Black' : 'White'} wins!` });
+            }
         }
     });
 
     // Draw button click handler
     $('#offerDrawBtn').click(() => {
         if (currentRoom && isConnected) {
-            ws.send(JSON.stringify({
-                type: 'offer_draw',
-                roomId: currentRoom,
-                fromColor: playerColor // Send who is offering the draw
-            }));
-            showStatus('Draw offered to opponent', 'info');
+            if (confirm("Are you sure you want to offer a draw?")) {
+                ws.send(JSON.stringify({
+                    type: 'offer_draw',
+                    roomId: currentRoom,
+                    fromColor: playerColor // Send who is offering the draw
+                }));
+                showStatus('Draw offered to opponent', 'info');
+            }
         }
     });
+
+    // Chat send button click handler
+    $('#sendChat').click(() => {
+        const chatInput = $('#chatInput');
+        const message = chatInput.val().trim();
+        if (message && isConnected && currentRoom) {
+            ws.send(JSON.stringify({
+                type: 'chat_message',
+                roomId: currentRoom,
+                message: message,
+                sender: playerColor // Or player's username if you add one
+            }));
+            addChatMessage(message, 'You'); // Display your own message instantly
+            chatInput.val(''); // Clear input
+        }
+    });
+
+    // Chat input enter key handler
+    $('#chatInput').keypress(function(e) {
+        if (e.which == 13) { // Enter key pressed
+            $('#sendChat').click(); // Trigger send button click
+        }
+    });
+
+    // Initial state for chat input and send button
+    $('#chatInput, #sendChat').prop('disabled', true);
 });
