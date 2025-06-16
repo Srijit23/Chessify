@@ -49,12 +49,20 @@ function initializeBoard() {
         showNotation: true
     };
 
-    board = Chessboard('board', config);
+     board = Chessboard('board', config);
 
-    $(window).resize(() => board.resize());
+    $(window).resize(() => {
+        board.resize();
+        // Optional: Re-attach click handler on resize if it seems to help.
+        // This is usually not necessary but can fix some rare quirks.
+        // $('#board .square-55d63').off('click').on('click', handleSquareClick);
+        // Note: You'd need to put the square click logic into a named function.
+    });
 
+    // Main click handler attachment
     setTimeout(() => {
-        $('#board .square-55d63').on('click', function () {
+        // Detach any existing handlers first to prevent multiple bindings
+        $('#board .square-55d63').off('click').on('click', function () {
             const clickedSquare = $(this).attr('data-square');
             console.log("Clicked square:", clickedSquare);
 
@@ -112,7 +120,6 @@ function initializeBoard() {
         });
     }, 500);
 }
-
 function highlightLegalMoves(sourceSquare) {
     removeHighlights();
     $(`[data-square='${sourceSquare}']`).addClass('highlight-selected');
