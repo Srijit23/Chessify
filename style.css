@@ -1,21 +1,25 @@
 /* Import Merriweather Font */
 @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@800&display=swap');
 
-/* Base Styles */
+/* Global Styles */
 body {
     font-family: 'Merriweather', serif;
-    background: linear-gradient(to bottom right, #f5f5f5, #e0e0e0);
+    background: linear-gradient(to bottom right, #f9f9f9, #e6ecf0);
     color: #2b2b2b;
     margin: 0;
     padding: 0;
-    transition: background 0.4s ease;
+    transition: all 0.5s ease-in-out;
 }
 
 /* Navbar */
 .navbar {
-    background-color: #ffffff;
-    border-bottom: 2px solid #d1d1d1;
-    transition: all 0.3s ease-in-out;
+    background: #ffffff;
+    border-bottom: 1px solid #ddd;
+    transition: box-shadow 0.3s ease;
+}
+
+.navbar:hover {
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
 }
 
 .navbar-brand {
@@ -35,43 +39,71 @@ body {
 }
 
 .nav-link {
-    color: #333333;
+    color: #333;
     font-weight: 500;
-    transition: color 0.3s ease;
+    transition: color 0.3s ease-in-out;
 }
 
-.nav-link:hover, .nav-link.active {
+.nav-link:hover,
+.nav-link.active {
     color: #0077b6;
 }
 
 /* Hero Section */
 .hero-section {
-    background: linear-gradient(to right, #caf0f8, #edf6f9);
+    background: linear-gradient(to right, #e0f7fa, #caf0f8);
     padding: 100px 20px;
     text-align: center;
-    transition: background 0.3s ease-in-out;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: "";
+    position: absolute;
+    top: -50px;
+    left: -50px;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, #ffffff55 10%, transparent 70%);
+    animation: pulse-bg 10s infinite;
+}
+
+@keyframes pulse-bg {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
 }
 
 .hero-content h1 {
-    font-size: 3.2rem;
+    font-size: 3.5rem;
     font-weight: 800;
     margin-bottom: 20px;
     color: #023047;
-    animation: fadeInUp 1s ease;
+    animation: fadeUp 1.2s ease-out;
 }
 
 .hero-content p {
-    font-size: 1.25rem;
+    font-size: 1.3rem;
     margin-bottom: 30px;
     color: #555;
-    animation: fadeInUp 1.3s ease;
+    animation: fadeUp 1.6s ease-out;
+}
+
+.btn {
+    font-weight: 600;
+    padding: 12px 28px;
+    border-radius: 50px;
+    transition: all 0.3s ease;
 }
 
 .btn-primary {
     background-color: #0077b6;
     border: none;
-    font-weight: 600;
-    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 119, 182, 0.3);
 }
 
 .btn-primary:hover {
@@ -82,7 +114,6 @@ body {
 .btn-outline-light {
     border: 2px solid #0077b6;
     color: #0077b6;
-    font-weight: 600;
 }
 
 .btn-outline-light:hover {
@@ -91,66 +122,91 @@ body {
     transform: scale(1.05);
 }
 
-/* Board Section */
+/* Chessboard Styles */
 #board {
     max-width: 480px;
+    border-radius: 16px;
+    overflow: hidden;
     margin: auto;
-    box-shadow: 0 0 20px rgba(0, 119, 182, 0.2);
-    border-radius: 12px;
-    transition: all 0.3s ease;
+    box-shadow: 0 0 25px rgba(0, 119, 182, 0.2);
+    animation: fadeZoom 1s ease-in-out;
 }
 
-/* Controls */
+.board-container:hover #board {
+    transform: scale(1.015);
+    transition: transform 0.3s ease-in-out;
+}
+
+/* Chess pieces drag effect */
+.piece-417db {
+    transition: transform 0.2s ease-in-out;
+}
+
+.piece-417db:active {
+    transform: scale(1.1);
+}
+
+/* Card Controls */
 .card {
     background-color: #ffffff;
-    border: 1px solid #cccccc;
-    border-radius: 12px;
-    transition: box-shadow 0.3s ease;
+    border-radius: 16px;
+    border: 1px solid #ccc;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 
 .card:hover {
-    box-shadow: 0 6px 20px rgba(0, 119, 182, 0.15);
+    box-shadow: 0 8px 20px rgba(0, 119, 182, 0.15);
+    transform: translateY(-4px);
 }
 
 .card-title {
-    color: #0077b6;
     font-weight: 700;
+    color: #0077b6;
 }
 
-.form-select, .form-check-input {
+/* Controls */
+.form-select,
+.form-check-input {
     background-color: #f9f9f9;
-    color: #333;
     border-color: #ccc;
+    transition: border 0.3s ease;
 }
 
-/* Status & Move History */
+.form-check-input:checked {
+    background-color: #0077b6;
+    border-color: #0077b6;
+}
+
+/* Game Status */
 .alert-info {
-    background-color: #e0f7fa;
-    color: #007c91;
+    background-color: #d0f0ff;
+    color: #0077b6;
     border: none;
 }
 
+/* Move History */
 .move-history {
-    background-color: #f1f1f1;
+    background-color: #f6f6f6;
     padding: 10px;
     height: 160px;
     overflow-y: auto;
     border-radius: 10px;
     border: 1px solid #ccc;
     font-size: 0.95rem;
+    font-family: monospace;
 }
 
-/* Tutorial Cards */
+/* Tutorials Section */
 .tutorial-card {
-    transition: transform 0.4s ease, box-shadow 0.4s ease;
-    border-radius: 12px;
+    border-radius: 16px;
     overflow: hidden;
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
     border: 1px solid #ddd;
 }
 
 .tutorial-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 8px 16px rgba(0, 119, 182, 0.15);
+    transform: scale(1.03);
+    box-shadow: 0 10px 20px rgba(0, 119, 182, 0.2);
 }
 
 .tutorial-card img {
@@ -159,52 +215,62 @@ body {
 }
 
 .tutorial-card .card-body {
-    background-color: #ffffff;
+    background-color: #fff;
 }
 
 /* Footer */
 footer {
-    background-color: #f0f0f0;
-    color: #777;
+    background-color: #f2f2f2;
+    color: #666;
     text-align: center;
     font-size: 0.95rem;
+    padding: 20px 0;
 }
 
-/* Scrollbar Styling */
+/* Scrollbars */
 ::-webkit-scrollbar {
-    width: 10px;
+    width: 8px;
 }
 ::-webkit-scrollbar-thumb {
     background-color: #0077b6;
     border-radius: 5px;
 }
 ::-webkit-scrollbar-track {
-    background-color: #f0f0f0;
+    background-color: #eee;
 }
 
-/* Animations */
-@keyframes fadeInUp {
-    0% {
+/* Key Animations */
+@keyframes fadeUp {
+    from {
         opacity: 0;
-        transform: translateY(40px);
+        transform: translateY(50px);
     }
-    100% {
+    to {
         opacity: 1;
         transform: translateY(0);
     }
 }
 
-/* Responsive Fixes */
+@keyframes fadeZoom {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Responsive */
 @media (max-width: 768px) {
     .hero-content h1 {
         font-size: 2.2rem;
     }
-
     .btn {
         width: 100%;
         margin-bottom: 10px;
     }
-
     .tutorial-card {
         margin-bottom: 20px;
     }
