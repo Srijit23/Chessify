@@ -3,40 +3,29 @@ let game = new Chess();
 let stockfish = null;
 let userColor = 'w';
 let isComputerThinking = false;
-let currentSkillLevel = 10; // Default skill level
+let currentSkillLevel = 10; // Default skill level (1-20)
+let tapSquare = null; // For tap-to-move support
 
-// Initialize Stockfish
 function initStockfish() {
     try {
         stockfish = new Worker('js/stockfish.js');
 
-        stockfish.onmessage = function(event) {
-            console.log("Stockfish says:", event.data);
-
+        stockfish.onmessage = function (event) {
             if (typeof event.data === 'string' && event.data.includes('bestmove')) {
                 const tokens = event.data.split(' ');
                 const move = tokens[1];
-                if (move && move !== '(none)') {
-                    makeComputerMove(move);
-                }
+                if (move && move !== '(none)') makeComputerMove(move);
             }
-        };
-
-        stockfish.onerror = (err) => {
-            console.error("Stockfish error:", err);
         };
 
         stockfish.postMessage('uci');
         stockfish.postMessage(`setoption name Skill Level value ${currentSkillLevel}`);
         stockfish.postMessage('isready');
-
-        console.log('Stockfish initialized');
     } catch (err) {
         console.error('Error initializing Stockfish:', err);
     }
 }
 
-// Set computer difficulty
 function setDifficulty(level) {
     currentSkillLevel = level;
     if (stockfish) {
@@ -45,7 +34,6 @@ function setDifficulty(level) {
     }
 }
 
-// Initialize board
 function initializeBoard() {
     const config = {
         draggable: true,
@@ -58,11 +46,57 @@ function initializeBoard() {
     };
 
     board = Chessboard('board', config);
-    $(window).resize(() => board.resize());
+
+    $(window).resize(() => {
+        board.resize();
+    });
+
+    // Tap-to-move handler
+    $('#board').on('click', '.square-55d63', function () {
+        if (isComputerThinking || game.game_over()) return;
+
+        const square = $(this).attr('data-square');
+        if (!tapSquare) {
+            const piece = game.get(square);
+            if (!piece || piece.color !== userColor) return;
+            tapSquare = square;
+            highlightSquare(square);
+        } else {
+            if (square === tapSquare) {
+                tapSquare = null;
+                removeHighlight();
+                return;
+            }
+
+            const move = game.move({
+                from: tapSquare,
+                to: square,
+                promotion: 'q'
+            });
+
+            tapSquare = null;
+            removeHighlight();
+
+            if (move === null) return;
+            board.position(game.fen());
+            playMoveSound(move);
+            addMoveToHistory(move);
+            updateStatus();
+            if (!game.game_over()) setTimeout(makeComputerThink, 250);
+        }
+    });
 }
 
-// On document ready
-$(document).ready(function() {
+function highlightSquare(square) {
+    removeHighlight();
+    $(`[data-square='${square}']`).css('background-color', '#b9eaff');
+}
+
+function removeHighlight() {
+    $('.square-55d63').css('background-color', '');
+}
+
+$(document).ready(function () {
     initializeBoard();
     initStockfish();
     initNavbarBehavior();
@@ -71,19 +105,15 @@ $(document).ready(function() {
     $('#undoBtn').on('click', undoMove);
     $('#resignBtn').on('click', resignGame);
 
-    $('input[name="playAs"]').on('change', function() {
+    $('input[name="playAs"]').on('change', function () {
         userColor = $('#playAsWhite').is(':checked') ? 'w' : 'b';
         newGame();
     });
 
-    $('#difficulty').on('change', function() {
+    $('#difficulty').on('change', function () {
         const level = parseInt($(this).val());
         setDifficulty(level);
-
-        const difficulty = level <= 5 ? 'Easy' :
-                           level <= 10 ? 'Medium' :
-                           level <= 15 ? 'Hard' : 'Expert';
-
+        const difficulty = level <= 5 ? 'Easy' : level <= 10 ? 'Medium' : level <= 15 ? 'Hard' : 'Expert';
         $('#gameStatus')
             .removeClass()
             .addClass('alert alert-info')
@@ -93,31 +123,32 @@ $(document).ready(function() {
     updateStatus();
 });
 
-// Navbar scroll hide/show
 function initNavbarBehavior() {
     let lastScrollTop = 0;
     const navbar = $('.navbar');
 
-    $(window).scroll(function() {
+    $(window).scroll(function () {
         const scrollTop = $(this).scrollTop();
 
-        if (scrollTop <= 0 || scrollTop < lastScrollTop) {
+        if (scrollTop <= 0) {
             navbar.removeClass('navbar-hidden');
-        } else {
+        } else if (scrollTop > lastScrollTop) {
             navbar.addClass('navbar-hidden');
+        } else {
+            navbar.removeClass('navbar-hidden');
         }
 
         lastScrollTop = scrollTop;
     });
 }
 
-// Chess events
 function onDragStart(source, piece) {
-    return !game.game_over() &&
-           !isComputerThinking &&
-           game.turn() === userColor &&
-           ((userColor === 'w' && piece.startsWith('w')) || 
-            (userColor === 'b' && piece.startsWith('b')));
+    if (game.game_over() || isComputerThinking || game.turn() !== userColor ||
+        (game.turn() === 'w' && piece.startsWith('b')) ||
+        (game.turn() === 'b' && piece.startsWith('w'))) {
+        return false;
+    }
+    return true;
 }
 
 function onDrop(source, target) {
@@ -127,16 +158,14 @@ function onDrop(source, target) {
         promotion: 'q'
     });
 
-    if (!move) return 'snapback';
+    if (move === null) return 'snapback';
 
     playMoveSound(move);
     board.position(game.fen());
     updateStatus();
     addMoveToHistory(move);
 
-    if (!game.game_over()) {
-        setTimeout(makeComputerThink, 250);
-    }
+    if (!game.game_over()) setTimeout(makeComputerThink, 250);
 }
 
 function onSnapEnd() {
@@ -150,17 +179,21 @@ function makeComputerThink() {
     updateStatus();
 
     try {
-        stockfish.postMessage('position fen ' + game.fen());
+        const fen = game.fen();
+        stockfish.postMessage('position fen ' + fen);
         stockfish.postMessage('go movetime 1000');
     } catch (err) {
-        console.error('Error during computer move:', err);
         isComputerThinking = false;
         updateStatus();
     }
 }
 
 function makeComputerMove(moveStr) {
-    if (!moveStr || moveStr.length < 4) return;
+    if (!moveStr || moveStr.length < 4) {
+        isComputerThinking = false;
+        updateStatus();
+        return;
+    }
 
     try {
         const move = game.move({
@@ -173,17 +206,15 @@ function makeComputerMove(moveStr) {
             board.position(game.fen());
             playMoveSound(move);
             addMoveToHistory(move);
-            console.log('Computer moved:', move.san);
         }
     } catch (err) {
-        console.error('Invalid computer move:', err);
+        console.error('Error making computer move:', err);
     }
 
     isComputerThinking = false;
     updateStatus();
 }
 
-// Sounds
 function playMoveSound(move) {
     const audio = new Audio();
     if (move.captured) {
@@ -193,10 +224,9 @@ function playMoveSound(move) {
     } else {
         audio.src = 'https://lichess1.org/assets/sound/standard/Move.ogg';
     }
-    audio.play().catch(() => {});
+    audio.play().catch(() => { });
 }
 
-// Move history
 function addMoveToHistory(move) {
     const moveNumber = Math.floor((game.history().length + 1) / 2);
     const moveText = `${moveNumber}. ${move.san}`;
@@ -207,11 +237,9 @@ function addMoveToHistory(move) {
 
     $('#moveHistory div').removeClass('latest-move');
     moveDiv.addClass('latest-move');
-
     $('#moveHistory').prepend(moveDiv);
 }
 
-// Status updater
 function updateStatus() {
     let status = '';
 
@@ -244,39 +272,35 @@ function updateStatus() {
     $('#gameStatus').text(status);
 }
 
-// Game end sound
 function playGameEndSound(isCheckmate) {
-    const audio = new Audio(
-        isCheckmate
-            ? 'https://lichess1.org/assets/sound/standard/Victory.ogg'
-            : 'https://lichess1.org/assets/sound/standard/Draw.ogg'
-    );
-    audio.play().catch(() => {});
+    const audio = new Audio();
+    audio.src = isCheckmate
+        ? 'https://lichess1.org/assets/sound/standard/Victory.ogg'
+        : 'https://lichess1.org/assets/sound/standard/Draw.ogg';
+    audio.play().catch(() => { });
 }
 
-// Game control
 function newGame() {
     game.reset();
     board.start();
     $('#moveHistory').empty();
+    tapSquare = null;
 
-    if (userColor === 'b') {
-        setTimeout(makeComputerThink, 500);
-    }
-
+    if (userColor === 'b') setTimeout(makeComputerThink, 500);
     updateStatus();
 }
 
 function undoMove() {
     if (isComputerThinking) return;
 
-    game.undo(); // player's move
-    game.undo(); // computer's move
+    game.undo();
+    game.undo();
     board.position(game.fen());
 
     $('#moveHistory div:first').remove();
     $('#moveHistory div:first').remove();
 
+    tapSquare = null;
     updateStatus();
 }
 
@@ -290,4 +314,5 @@ function resignGame() {
         .removeClass()
         .addClass('alert alert-info')
         .text('Game resigned. Start a new game!');
+    tapSquare = null;
 }
