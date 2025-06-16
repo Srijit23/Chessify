@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>WELLCOME - Learn and Master Chess</title>
 
-  <!-- Styles -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="style.css" />
   <style>
+/* Existing Navbar Styles */
 .navbar-nav {
     display: flex;
     flex-direction: row;
@@ -19,27 +19,27 @@
     margin: 0;
     padding: 0;
     list-style: none;
-  }
+}
 
-  .navbar-nav .nav-item {
+.navbar-nav .nav-item {
     display: inline-block;
-  }
+}
 
-  .navbar-nav .nav-link {
+.navbar-nav .nav-link {
     font-size: 1rem;
     font-weight: 600;
     color: #023047 !important;
     padding: 10px 0;
     transition: all 0.3s ease-in-out;
     border-bottom: none !important;
-  }
+}
 
-  .navbar-nav .nav-link:hover {
+.navbar-nav .nav-link:hover {
     color: #0077b6 !important;
     transform: translateY(-1px);
-  }
+}
 
-  @media (max-width: 991.98px) {
+@media (max-width: 991.98px) {
     .navbar-collapse {
       position: fixed;
       top: 0;
@@ -74,20 +74,60 @@
       z-index: 1040;
     }
 
-
- 
-
     .sidebar-overlay.active {
       opacity: 1;
       visibility: visible;
     }
-  }
+}
+
+/* --- NEW CSS FOR HIGHLIGHTING --- */
+
+/* Base style for highlighted squares (selected piece) */
+.highlight-selected {
+    /* Using !important to ensure these styles override chessboard.js defaults */
+    background-color: #b9eaff !important; /* A light blue for selected piece */
+    box-shadow: inset 0 0 5px 3px rgba(0, 0, 255, 0.5); /* Optional subtle glow */
+}
+
+/* Base style for squares indicating a legal move */
+.highlight-move {
+    background-color: rgba(0, 255, 0, 0.3) !important; /* A translucent green for legal moves */
+    /* You might want a border or other effect here too, e.g., border: 2px dashed green; */
+}
+
+/* Specific styles for light squares when highlighted */
+.square-light.highlight-selected {
+    background-color: #b9eaff !important; /* Keep light blue */
+}
+
+.square-light.highlight-move {
+    background-color: rgba(0, 255, 0, 0.3) !important; /* Keep translucent green */
+}
+
+/* Specific styles for dark squares when highlighted */
+.square-dark.highlight-selected {
+    /* A slightly darker blue for dark squares to maintain contrast */
+    background-color: #92b7c6 !important;
+}
+
+.square-dark.highlight-move {
+    /* Slightly darker green for dark squares */
+    background-color: rgba(0, 200, 0, 0.3) !important;
+}
+
+/* Ensure pieces on highlighted squares are still visible and centered */
+.square-55d63.highlight-selected .piece-417db,
+.square-55d63.highlight-move .piece-417db {
+    z-index: 2; /* Ensures piece is above the highlight */
+}
+
+/* --- END NEW CSS --- */
+
 </style>
 
 </head>
 <body>
 
-  <!-- Loading Screen -->
   <div id="loading-screen">
     <div class="loader-card">
       <img src="images/image.png" alt="Loading Banner" class="loader-banner">
@@ -99,7 +139,6 @@
     </div>
   </div>
 
-  <!-- Navigation Bar -->
   <nav class="navbar navbar-expand-lg navbar-dark">
     <div class="container">
       <a class="navbar-brand d-flex align-items-center" href="#">
@@ -120,10 +159,8 @@
     </div>
   </nav>
 
-  <!-- Sidebar Overlay -->
   <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-  <!-- Hero Section -->
   <header class="hero-section">
     <div class="hero-content">
       <h1>Master the Game of Chess</h1>
@@ -135,7 +172,6 @@
     </div>
   </header>
 
-  <!-- Practice Section -->
   <section id="practice" class="py-5">
     <div class="container">
       <h2 class="text-center mb-4">Practice with Computer</h2>
@@ -194,7 +230,6 @@
     </div>
   </section>
 
-  <!-- Tutorials Section -->
   <section id="tutorials" class="py-5 bg-light">
     <div class="container">
       <h2 class="text-center mb-4">Chess Tutorials</h2>
@@ -233,14 +268,12 @@
     </div>
   </section>
 
-  <!-- Footer -->
   <footer class="bg-dark text-light py-4">
     <div class="container text-center">
       <p>&copy; 2025 Airsland. All rights reserved.</p>
     </div>
   </footer>
 
-  <!-- Scripts -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
