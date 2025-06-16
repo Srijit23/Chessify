@@ -26,7 +26,7 @@ function initializeBoard() {
     console.log("Initializing board...");
 
     const config = {
-        draggable: true,
+        draggable: true, // Keep drag and drop enabled
         position: 'start',
         pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
         onDragStart: onDragStart,
@@ -42,8 +42,8 @@ function initializeBoard() {
     // Delay to ensure the board DOM elements are fully rendered before attaching click listeners
     setTimeout(() => {
         $('#board .square-55d63').on('click', function () {
-            const square = $(this).attr('data-square');
-            console.log("Clicked square for tap-to-move:", square);
+            const clickedSquare = $(this).attr('data-square');
+            console.log("Clicked square:", clickedSquare);
 
             // Prevent interaction if computer is thinking or game is over
             if (isComputerThinking || game.game_over()) {
@@ -52,54 +52,56 @@ function initializeBoard() {
             }
 
             // Scenario 1: No piece is currently selected for tap-to-move
-            if (!tapSquare) {
-                const piece = game.get(square);
-                // Only allow selecting a piece if it's the player's turn and their color
-                if (piece && piece.color === userColor[0] && game.turn() === userColor[0]) {
-                    tapSquare = square;
-                    highlightSquare(square);
-                    console.log("Piece selected:", square);
-                    // Optionally, highlight legal moves for the selected piece
-                    highlightLegalMoves(square);
+            if (tapSquare === null) {
+                const piece = game.get(clickedSquare);
+                // Only allow selecting a piece if it's the user's turn and their color
+                if (piece && piece.color === userColor && game.turn() === userColor) {
+                    tapSquare = clickedSquare;
+                    highlightLegalMoves(tapSquare); // Highlight the selected piece AND its legal moves
+                    console.log("Piece selected:", tapSquare);
                 } else {
                     console.log("Cannot select: no piece, not your piece, or not your turn.");
+                    removeHighlights(); // Ensure no lingering highlights if invalid tap
                 }
             } else {
-                // Scenario 2: A piece is already selected
+                // Scenario 2: A piece is already selected (tapSquare is not null)
                 // Check if the user clicked the same square (to deselect)
-                if (square === tapSquare) {
+                if (clickedSquare === tapSquare) {
                     deselectPiece();
                     console.log("Piece deselected.");
                 } else {
                     // Attempt to move the selected piece to the new square
-                    const move = game.move({
+                    const moveAttempt = {
                         from: tapSquare,
-                        to: square,
+                        to: clickedSquare,
                         promotion: 'q' // Default to queen promotion
-                    });
+                    };
 
-                    if (move === null) {
-                        // Invalid move. If the clicked square has a piece of the user's color,
-                        // treat it as selecting a new piece. Otherwise, deselect.
-                        const newPiece = game.get(square);
-                        if (newPiece && newPiece.color === userColor[0] && game.turn() === userColor[0]) {
+                    const moveResult = game.move(moveAttempt);
+
+                    if (moveResult === null) {
+                        // Invalid move. Check if the clicked square contains a piece of the user's color
+                        const newPiece = game.get(clickedSquare);
+                        if (newPiece && newPiece.color === userColor && game.turn() === userColor) {
+                            // User clicked on another of their own pieces, so select the new one
                             deselectPiece(); // Deselect old piece
-                            tapSquare = square; // Select new piece
-                            highlightSquare(square);
-                            highlightLegalMoves(square);
-                            console.log("Invalid move, selecting new piece:", square);
+                            tapSquare = clickedSquare; // Select new piece
+                            highlightLegalMoves(tapSquare); // Highlight new piece and its moves
+                            console.log("Invalid move, selecting new piece:", clickedSquare);
                         } else {
+                            // User clicked on an empty square where no valid move was possible, or an opponent's piece.
+                            // Deselect the previously selected piece.
                             deselectPiece();
                             console.log("Invalid move, deselecting piece.");
                         }
                     } else {
                         // Valid move. Execute it.
-                        board.position(game.fen());
-                        playMoveSound(move);
-                        addMoveToHistory(move);
+                        board.position(game.fen()); // Update the visual board
+                        playMoveSound(moveResult);
+                        addMoveToHistory(moveResult);
                         updateStatus();
                         deselectPiece(); // Deselect after a successful move
-                        console.log("Move made:", move);
+                        console.log("Move made:", moveResult);
 
                         // If the game isn't over, let the computer think
                         if (!game.game_over()) setTimeout(makeComputerThink, 250);
@@ -110,48 +112,60 @@ function initializeBoard() {
     }, 500); // delay ensures board is ready
 }
 
-function highlightSquare(square) {
-    removeHighlights(); // Remove all highlights first
-    $(`[data-square='${square}']`).addClass('highlight-selected');
-}
-
+/**
+ * Highlights the selected piece and all its legal target squares.
+ * @param {string} sourceSquare - The algebraic notation of the square with the selected piece.
+ */
 function highlightLegalMoves(sourceSquare) {
-    removeHighlights(); // Remove all highlights first
-    $(`[data-square='${sourceSquare}']`).addClass('highlight-selected'); // Highlight the selected piece
+    removeHighlights(); // Always start by removing previous highlights
 
-    const moves = game.moves({
+    // Add highlight for the selected piece itself
+    $(`[data-square='${sourceSquare}']`).addClass('highlight-selected');
+
+    // Get all legal moves for the piece on the sourceSquare
+    const legalMoves = game.moves({
         square: sourceSquare,
-        verbose: true
+        verbose: true // Get verbose objects to easily access 'to' square
     });
 
-    for (let i = 0; i < moves.length; i++) {
-        $(`[data-square='${moves[i].to}']`).addClass('highlight-move');
+    // Highlight each target square for legal moves
+    for (let i = 0; i < legalMoves.length; i++) {
+        $(`[data-square='${legalMoves[i].to}']`).addClass('highlight-move');
     }
 }
 
+/**
+ * Removes all highlight classes from all squares on the board.
+ */
 function removeHighlights() {
     $('.square-55d63').removeClass('highlight-selected highlight-move');
 }
 
+/**
+ * Deselects the current piece and removes all highlights.
+ */
 function deselectPiece() {
     tapSquare = null;
     removeHighlights();
 }
 
 function onDragStart(source, piece) {
-    // If a piece is selected via tap, prevent drag for other pieces
-    if (tapSquare && tapSquare !== source) {
+    // If a piece is selected via tap, prevent dragging of other pieces
+    // If the selected piece (tapSquare) is the one being dragged, allow it.
+    if (tapSquare !== null && tapSquare !== source) {
+        console.log("Blocking drag: A piece is already selected via tap.");
         return false;
     }
 
     // Standard drag start conditions
-    if (game.game_over() || isComputerThinking || game.turn() !== userColor[0] ||
+    if (game.game_over() || isComputerThinking || game.turn() !== userColor ||
         (game.turn() === 'w' && piece.startsWith('b')) ||
         (game.turn() === 'b' && piece.startsWith('w'))) {
+        console.log("Blocking drag: Game over, computer thinking, or not your turn/piece.");
         return false;
     }
 
-    // Remove any tap-to-move highlights when drag starts
+    // Clear any tap selection highlights when a drag operation begins
     deselectPiece();
     return true;
 }
@@ -165,13 +179,17 @@ function onDrop(source, target) {
     });
 
     // If the move is illegal, snap the piece back
-    if (move === null) return 'snapback';
+    if (move === null) {
+        console.log("Illegal drag move. Snapping back.");
+        return 'snapback';
+    }
 
     // If valid, update the board, play sound, add to history, and update status
     board.position(game.fen());
     playMoveSound(move);
     addMoveToHistory(move);
     updateStatus();
+    console.log("Drag move made:", move);
 
     // If the game isn't over, let the computer think
     if (!game.game_over()) setTimeout(makeComputerThink, 250);
@@ -184,10 +202,14 @@ function onSnapEnd() {
 }
 
 function makeComputerThink() {
-    if (!stockfish || isComputerThinking) return;
+    if (!stockfish || isComputerThinking) {
+        console.log("Computer already thinking or Stockfish not initialized.");
+        return;
+    }
 
     isComputerThinking = true;
     updateStatus();
+    console.log("Computer is starting to think...");
 
     const fen = game.fen();
     stockfish.postMessage('position fen ' + fen);
@@ -199,6 +221,7 @@ function makeComputerMove(moveStr) {
     if (!moveStr || moveStr.length < 4) {
         isComputerThinking = false;
         updateStatus();
+        console.log("Invalid move string received from Stockfish.");
         return;
     }
 
@@ -212,6 +235,9 @@ function makeComputerMove(moveStr) {
         board.position(game.fen());
         playMoveSound(move);
         addMoveToHistory(move);
+        console.log("Computer made move:", moveStr);
+    } else {
+        console.error("Stockfish suggested an illegal move:", moveStr);
     }
 
     isComputerThinking = false;
@@ -227,7 +253,7 @@ function playMoveSound(move) {
     } else {
         audio.src = 'https://lichess1.org/assets/sound/standard/Move.ogg';
     }
-    audio.play().catch(() => {}); // Catch and ignore play errors
+    audio.play().catch(() => { /* console.error("Audio playback failed:", error); */ }); // Catch and ignore play errors
 }
 
 function addMoveToHistory(move) {
@@ -287,18 +313,30 @@ function newGame() {
     deselectPiece(); // Ensure no piece is selected
     if (userColor === 'b') setTimeout(makeComputerThink, 500); // If playing as black, computer moves first
     updateStatus(); // Update game status
+    console.log("New game started.");
 }
 
 function undoMove() {
-    if (isComputerThinking) return; // Prevent undo while computer is thinking
+    if (isComputerThinking) {
+        console.log("Cannot undo: Computer is thinking.");
+        return; // Prevent undo while computer is thinking
+    }
 
-    game.undo(); // Undo player's move
-    game.undo(); // Undo computer's move
-    board.position(game.fen()); // Update board to reflect undone moves
-    $('#moveHistory div:first').remove(); // Remove player's move from history
-    $('#moveHistory div:first').remove(); // Remove computer's move from history
-    deselectPiece(); // Deselect any piece
-    updateStatus(); // Update game status
+    const lastMove = game.undo(); // Undo player's move
+    const prevMove = game.undo(); // Undo computer's move
+
+    if (lastMove || prevMove) { // Only update if moves were actually undone
+        board.position(game.fen()); // Update board to reflect undone moves
+        $('#moveHistory div:first').remove(); // Remove player's move from history
+        if (prevMove) { // If computer also made a move, remove its history entry
+            $('#moveHistory div:first').remove();
+        }
+        deselectPiece(); // Deselect any piece
+        updateStatus(); // Update game status
+        console.log("Last moves undone.");
+    } else {
+        console.log("No moves to undo.");
+    }
 }
 
 function resignGame() {
@@ -313,6 +351,7 @@ function resignGame() {
         .removeClass()
         .addClass('alert alert-info')
         .text('Game resigned. Start a new game!');
+    console.log("Game resigned.");
 }
 
 // Init everything when the document is ready
@@ -328,6 +367,7 @@ $(document).ready(function () {
     $('input[name="playAs"]').on('change', function () {
         userColor = $('#playAsWhite').is(':checked') ? 'w' : 'b';
         newGame(); // Start a new game with the selected color
+        console.log("User color set to:", userColor);
     });
 
     // Handle difficulty level change
@@ -339,7 +379,9 @@ $(document).ready(function () {
             .removeClass()
             .addClass('alert alert-info')
             .text(`Difficulty set to Level ${level}`);
+        console.log("Difficulty set to Level:", level);
     });
 
     updateStatus(); // Initial status update
+    console.log("Document ready. Initializing game.");
 });
