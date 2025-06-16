@@ -3,8 +3,8 @@ let game = new Chess();
 let stockfish = null;
 let userColor = 'w';
 let isComputerThinking = false;
-let currentSkillLevel = 10; // Default skill level (1-20)
-let tapSquare = null; // For tap-to-move support
+let currentSkillLevel = 10;
+let tapSquare = null;
 
 function initStockfish() {
     try {
@@ -51,16 +51,18 @@ function initializeBoard() {
         board.resize();
     });
 
-    // Tap-to-move handler
     $('#board').on('click', '.square-55d63', function () {
         if (isComputerThinking || game.game_over()) return;
 
         const square = $(this).attr('data-square');
+
+        // Tap-to-select
         if (!tapSquare) {
             const piece = game.get(square);
             if (!piece || piece.color !== userColor) return;
             tapSquare = square;
             highlightSquare(square);
+            showLegalMoves(square);
         } else {
             if (square === tapSquare) {
                 tapSquare = null;
@@ -82,6 +84,7 @@ function initializeBoard() {
             playMoveSound(move);
             addMoveToHistory(move);
             updateStatus();
+
             if (!game.game_over()) setTimeout(makeComputerThink, 250);
         }
     });
@@ -90,6 +93,13 @@ function initializeBoard() {
 function highlightSquare(square) {
     removeHighlight();
     $(`[data-square='${square}']`).css('background-color', '#b9eaff');
+}
+
+function showLegalMoves(fromSquare) {
+    const moves = game.moves({ square: fromSquare, verbose: true });
+    moves.forEach(move => {
+        $(`[data-square="${move.to}"]`).css('background-color', '#f0d9b5');
+    });
 }
 
 function removeHighlight() {
@@ -143,9 +153,13 @@ function initNavbarBehavior() {
 }
 
 function onDragStart(source, piece) {
-    if (game.game_over() || isComputerThinking || game.turn() !== userColor ||
+    if (
+        game.game_over() ||
+        isComputerThinking ||
+        game.turn() !== userColor ||
         (game.turn() === 'w' && piece.startsWith('b')) ||
-        (game.turn() === 'b' && piece.startsWith('w'))) {
+        (game.turn() === 'b' && piece.startsWith('w'))
+    ) {
         return false;
     }
     return true;
@@ -224,7 +238,7 @@ function playMoveSound(move) {
     } else {
         audio.src = 'https://lichess1.org/assets/sound/standard/Move.ogg';
     }
-    audio.play().catch(() => { });
+    audio.play().catch(() => {});
 }
 
 function addMoveToHistory(move) {
@@ -277,7 +291,7 @@ function playGameEndSound(isCheckmate) {
     audio.src = isCheckmate
         ? 'https://lichess1.org/assets/sound/standard/Victory.ogg'
         : 'https://lichess1.org/assets/sound/standard/Draw.ogg';
-    audio.play().catch(() => { });
+    audio.play().catch(() => {});
 }
 
 function newGame() {
