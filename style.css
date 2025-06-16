@@ -8,19 +8,31 @@ body {
     color: #2b2b2b;
     margin: 0;
     padding: 0;
-    transition: all 0.5s ease-in-out;
     scroll-behavior: smooth;
+    animation: pageEnter 0.7s ease-in;
+}
+
+@keyframes pageEnter {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 /* Navbar */
 .navbar {
-    background: #ffffff;
-    border-bottom: 1px solid #ddd;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     transition: box-shadow 0.3s ease;
 }
 
 .navbar:hover {
-    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
 }
 
 .navbar-brand {
@@ -30,26 +42,20 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
-    transition: none;
-}
-
-.navbar-brand:hover {
-    color: inherit;
-    text-decoration: none;
 }
 
 .brand-logo {
-    width: 38px;
-    height: 38px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     object-fit: cover;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    border: 2px solid #0077b6;
+    border: 2px solid black;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     transition: transform 0.3s ease;
 }
 
 .brand-logo:hover {
-    transform: rotate(5deg) scale(1.05);
+    transform: rotate(4deg) scale(1.08);
 }
 
 .nav-link {
@@ -141,18 +147,19 @@ body {
 /* Chessboard Styles */
 #board {
     max-width: 480px;
-    border-radius: 16px;
+    border-radius: 20px;
     overflow: hidden;
     margin: auto;
-    box-shadow: 0 0 25px rgba(0, 119, 182, 0.2);
+    border: 2px solid rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 15px 35px rgba(0, 119, 182, 0.15);
     animation: fadeZoom 1s ease-in-out;
-    background-color: #fdfdfd;
-    border: 3px solid #0077b6;
     transition: transform 0.3s ease-in-out;
 }
 
 .board-container:hover #board {
-    transform: scale(1.015);
+    transform: scale(1.02);
 }
 
 /* Chess pieces drag effect */
@@ -166,15 +173,16 @@ body {
 
 /* Card Controls */
 .card {
-    background-color: #ffffff;
+    background: rgba(255, 255, 255, 0.6);
     border-radius: 16px;
-    border: 1px solid #ccc;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(10px);
     transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 
 .card:hover {
-    box-shadow: 0 8px 20px rgba(0, 119, 182, 0.15);
-    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0, 119, 182, 0.15);
+    transform: translateY(-6px);
 }
 
 .card-title {
@@ -204,14 +212,15 @@ body {
 
 /* Move History */
 .move-history {
-    background-color: #f6f6f6;
+    background-color: rgba(255, 255, 255, 0.6);
     padding: 10px;
     height: 160px;
     overflow-y: auto;
-    border-radius: 10px;
+    border-radius: 12px;
     border: 1px solid #ccc;
     font-size: 0.95rem;
     font-family: monospace;
+    backdrop-filter: blur(8px);
 }
 
 /* Tutorials Section */
@@ -220,6 +229,8 @@ body {
     overflow: hidden;
     transition: transform 0.4s ease, box-shadow 0.4s ease;
     border: 1px solid #ddd;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
 }
 
 .tutorial-card:hover {
@@ -233,16 +244,18 @@ body {
 }
 
 .tutorial-card .card-body {
-    background-color: #fff;
+    background-color: transparent;
 }
 
 /* Footer */
 footer {
-    background-color: #f2f2f2;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(8px);
     color: #666;
     text-align: center;
     font-size: 0.95rem;
     padding: 20px 0;
+    border-top: 1px solid #ddd;
 }
 
 /* Scrollbars */
