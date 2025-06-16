@@ -11,6 +11,55 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <style>
+        #board {
+    /* This is important for touch devices and preventing default scroll/zoom */
+    touch-action: none;
+    -ms-touch-action: none; /* For older IE/Edge */
+}
+
+.highlight-selected {
+    background-color: #f7e06a !important;
+    box-shadow: inset 0 0 1px 4px #b8b17b;
+}
+
+.highlight-move {
+    background-color: #6aed7a !important;
+}
+
+.highlight-move.square-empty::after {
+    content: "";
+    display: block;
+    width: 30%;
+    height: 30%;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.2);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Basic styling for chat box and messages */
+.chat-box {
+    height: 150px; /* Or adjust as needed */
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-message {
+    margin-bottom: 5px;
+    font-size: 0.9em;
+}
+
+.chat-message strong {
+    color: #0056b3; /* Or a color that fits your theme */
+}
         /* Chess Piece Theme */
         .white-1e1d7 {
             background-color: #f0d9b5;
