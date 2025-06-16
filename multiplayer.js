@@ -1,4 +1,4 @@
-let board = null;
+let board = null; // Board now starts as null
 let game = new Chess();
 let ws = null;
 let playerColor = 'white'; // 'white' or 'black'
@@ -211,11 +211,14 @@ function deselectPiece() {
 }
 
 // Initialize the game board
+// Now, this function will always create a new board instance,
+// ensuring it's properly laid out when called after the container is visible.
 function initializeBoard(orientation) {
-    console.log("Initializing board with orientation:", orientation); // Enhanced log
+    console.log("Initializing board with orientation:", orientation);
+    // Destroy existing board only if it exists
     if (board) {
-        board.destroy(); // Destroy existing board instance to reset it
-        console.log("Existing board destroyed."); // Log destruction
+        board.destroy();
+        console.log("Existing board destroyed.");
     }
 
     const config = {
@@ -227,49 +230,68 @@ function initializeBoard(orientation) {
     };
 
     board = Chessboard('board', config);
-    console.log("New Chessboard instance created."); // Log creation
-    $(window).resize(() => {
-        board.resize();
-        bindSquareClickHandlers(); // Re-bind on resize
+    console.log("New Chessboard instance created.");
+
+    // Only set up resize handler once, as the board instance may change.
+    // Ensure this resize handler correctly targets the current 'board' instance.
+    $(window).off('resize.chessboard').on('resize.chessboard', () => { // Use namespaced event to prevent multiple bindings
+        if (board) { // Check if board exists before resizing
+            board.resize();
+            bindSquareClickHandlers();
+        }
     });
+
     updateStatus();
 
     // Initial binding of click handlers after board setup
-    setTimeout(bindSquareClickHandlers, 500);
+    // Use a small timeout to ensure DOM is fully ready after Chessboard.js renders.
+    setTimeout(bindSquareClickHandlers, 100);
 }
 
 // Handle room creation
 function handleRoomCreated(data) {
-    console.log("Room created message received:", data); // Enhanced log
+    console.log("Room created message received:", data);
     currentRoom = data.roomId;
     playerColor = data.color; // 'white' or 'black'
     $('#currentRoom').text(currentRoom);
     $('#playerColor').text(playerColor);
-    $('#roomControls').hide(); // Hides the room creation/join UI
-    $('#gameArea').show();    // SHOWS THE GAME AREA (chessboard)
+    $('#roomControls').hide();
+
+    // CRITICAL FIX: Ensure gameArea is visible BEFORE initializing the board
+    $('#gameArea').show();
+    initializeBoard(playerColor); // Initialize board AFTER container is visible
+
+    // After initializing and showing, explicitly resize
+    if (board) {
+        board.resize();
+        console.log("Board resized after room created and gameArea shown.");
+    }
+
     showStatus('Waiting for opponent to join...', 'info');
-    initializeBoard(playerColor); // Initialize board with player's color
 }
 
 // Handle game start
 function handleGameStart(data) {
-    console.log('Game starting message received:', data); // Enhanced log
+    console.log('Game starting message received:', data);
     currentRoom = data.roomId;
     playerColor = data.color; // 'white' or 'black' - Crucial for joining player
     game = new Chess(); // Reset the game state
 
-    // Initialize the board with the correct orientation
-    initializeBoard(playerColor); // This MUST initialize for the joining player too
-
-    // Set turn based on initial game state and player color
-    isMyTurn = (playerColor === 'white' && game.turn() === 'w') || (playerColor === 'black' && game.turn() === 'b');
-
     $('#currentRoom').text(currentRoom);
     $('#playerColor').text(playerColor);
-    $('#roomControls').hide(); // Hides the room creation/join UI
-    $('#gameArea').show();    // SHOWS THE GAME AREA (chessboard) for BOTH players
-    console.log("Game Area shown, currentRoom set, playerColor set."); // Enhanced log
+    $('#roomControls').hide();
 
+    // CRITICAL FIX: Ensure gameArea is visible BEFORE initializing the board
+    $('#gameArea').show();
+    initializeBoard(playerColor); // Initialize board AFTER container is visible
+
+    // After initializing and showing, explicitly resize
+    if (board) {
+        board.resize();
+        console.log("Board resized after game started and gameArea shown.");
+    }
+
+    isMyTurn = (playerColor === 'white' && game.turn() === 'w') || (playerColor === 'black' && game.turn() === 'b');
     showStatus(isMyTurn ? 'Your turn' : "Opponent's turn", 'info');
     enableGameControls();
 }
@@ -278,7 +300,9 @@ function handleGameStart(data) {
 function handleMoveMade(data) {
     console.log('Applying opponent move:', data.move);
     game.move(data.move);
-    board.position(game.fen());
+    if (board) { // Ensure board exists before updating position
+        board.position(game.fen());
+    }
     isMyTurn = true; // After opponent's move, it becomes your turn
     playMoveSound(data.move);
     addMoveToHistory(data.move);
@@ -366,7 +390,7 @@ function handleDrawOffer(data) {
             }));
             showStatus('Draw accepted. Game is a draw!', 'info');
             game.reset(); // Reset game state for draw
-            board.start(); // Reset visual board
+            if (board) board.start(); // Reset visual board
             $('#moveHistory').empty();
             disableGameControls();
         } else {
@@ -385,7 +409,7 @@ function handleDrawResponse(data) {
     if (data.accepted) {
         showStatus('Opponent accepted the draw. Game is a draw!', 'info');
         game.reset();
-        board.start();
+        if (board) board.start();
         $('#moveHistory').empty();
         disableGameControls();
     } else {
@@ -416,10 +440,8 @@ function disableGameControls() {
 
 // Event listeners
 $(document).ready(() => {
-    // Initial chessboard setup when the page loads, using a default 'white' orientation.
-    // This ensures 'board' is initialized and ready for first interactions.
-    // Buttons start disabled and get enabled on WebSocket connection.
-    initializeBoard('white'); // Ensure board is initialized
+    // DO NOT initialize board here. It will be initialized when #gameArea becomes visible.
+    board = null; // Ensure board is explicitly null on page load
     $('#createRoom, #joinRoom').prop('disabled', true); // Start disabled
 
     // Connect to server when page loads (this will enable buttons on open)
