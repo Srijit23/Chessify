@@ -43,7 +43,7 @@ body {
 .airsland-name {
     font-family: 'Merriweather', serif;
     font-size: 24px;
-    color: skyblue; /* Changed to sky blue */
+    color: #0077b6; /* Changed to sky blue */
     font-weight: 700;
     margin: 0;
     transition: all 0.3s ease-in-out;
