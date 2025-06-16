@@ -9,19 +9,19 @@
   <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="style.css" />
-  <style>
+ <style>
 /* Existing Navbar Styles */
- .navbar-toggler {
+.navbar-toggler {
     border-color: black;
     padding: 6px 10px;
     border-radius: 4px;
-  }
+}
 
-  .navbar-toggler-icon {
+.navbar-toggler-icon {
     background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3e%3cpath stroke='black' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
-  }
+}
 
- .navbar-nav {
+.navbar-nav {
     display: flex;
     flex-direction: row;
     gap: 1rem;
@@ -29,110 +29,135 @@
     margin: 0;
     padding: 0;
     list-style: none;
-  }
+}
 
-  .navbar-nav .nav-item {
+.navbar-nav .nav-item {
     display: inline-block;
-  }
+}
 
-  .navbar-nav .nav-link {
+.navbar-nav .nav-link {
     font-size: 1rem;
     font-weight: 600;
     color: #023047 !important;
     padding: 10px 0;
     transition: all 0.3s ease-in-out;
     border-bottom: none !important;
-  }
+}
 
-  .navbar-nav .nav-link:hover {
+.navbar-nav .nav-link:hover {
     color: #0077b6 !important;
     transform: translateY(-1px);
-  }
-
+}
 
 @media (max-width: 991.98px) {
     .navbar-collapse {
-      position: fixed;
-      top: 0;
-      left: -100%;
-      height: 100vh;
-      width: 260px;
-      background: rgba(255, 255, 255, 0.75);
-      backdrop-filter: blur(15px);
-      transition: left 0.4s ease;
-      padding: 80px 20px 20px;
-      box-shadow: 6px 0 25px rgba(0, 0, 0, 0.1);
-      z-index: 1050;
-      border-right: 1px solid rgba(0, 0, 0, 0.05);
+        position: fixed;
+        top: 0;
+        left: -100%;
+        height: 100vh;
+        width: 260px;
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(15px);
+        transition: left 0.4s ease;
+        padding: 80px 20px 20px;
+        box-shadow: 6px 0 25px rgba(0, 0, 0, 0.1);
+        z-index: 1050;
+        border-right: 1px solid rgba(0, 0, 0, 0.05);
     }
 
     .navbar-collapse.show {
-      left: 0;
+        left: 0;
     }
 
     .navbar-nav {
-      flex-direction: column;
-      gap: 18px;
+        flex-direction: column;
+        gap: 18px;
     }
 
     .sidebar-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.4);
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.4s ease;
-      z-index: 1040;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.4s ease;
+        z-index: 1040;
     }
 
     .sidebar-overlay.active {
-      opacity: 1;
-      visibility: visible;
+        opacity: 1;
+        visibility: visible;
     }
 }
 
-/* --- NEW CSS FOR HIGHLIGHTING --- */
+---
 
-/* Base style for highlighted squares (selected piece) */
-.highlight-selected {
-    /* Using !important to ensure these styles override chessboard.js defaults */
-    background-color: #b9eaff !important; /* A light blue for selected piece */
-    box-shadow: inset 0 0 5px 3px rgba(0, 0, 255, 0.5); /* Optional subtle glow */
+/* Chessboard.js Specific Styles */
+#board {
+    touch-action: none; /* Crucial for touch devices */
+    -ms-touch-action: none;
 }
 
-/* Base style for squares indicating a legal move */
+/* Sophisticated Highlighting for selected piece and legal moves */
+
+/* Base highlight for a selected piece (light blue) */
+.highlight-selected {
+    background-color: #DDEEFF !important; /* Very light, clean blue */
+    box-shadow: inset 0 0 1px 4px #81A1C1; /* A muted blue for the inner shadow */
+}
+
+/* Base highlight for squares that are legal moves (translucent aquamarine) */
 .highlight-move {
-    background-color: rgba(0, 255, 0, 0.3) !important; /* A translucent green for legal moves */
-    /* You might want a border or other effect here too, e.g., border: 2px dashed green; */
+    background-color: rgba(127, 255, 212, 0.4) !important; /* Aquamarine with 40% opacity - a clean, subtle green-blue */
 }
 
 /* Specific styles for light squares when highlighted */
 .square-light.highlight-selected {
-    background-color: #b9eaff !important; /* Keep light blue */
+    background-color: #DDEEFF !important; /* Keep the light blue for selected light squares */
 }
 
 .square-light.highlight-move {
-    background-color: rgba(0, 255, 0, 0.3) !important; /* Keep translucent green */
+    background-color: rgba(127, 255, 212, 0.4) !important; /* Keep the translucent aquamarine for light move squares */
 }
 
 /* Specific styles for dark squares when highlighted */
 .square-dark.highlight-selected {
-    /* A slightly darker blue for dark squares to maintain contrast */
-    background-color: #92b7c6 !important;
+    /* A slightly darker shade of blue for dark squares to maintain good contrast */
+    background-color: #ADCDEE !important; /* Slightly darker than DDEEFF */
+    box-shadow: inset 0 0 1px 4px #6A8CA8; /* A muted, darker blue for the inner shadow */
 }
 
 .square-dark.highlight-move {
-    /* Slightly darker green for dark squares */
-    background-color: rgba(0, 200, 0, 0.3) !important;
+    /* Slightly darker translucent aquamarine for dark squares */
+    background-color: rgba(100, 200, 150, 0.4) !important; /* Darker variant of aquamarine */
+}
+
+/* Dot indicator for empty squares that are legal moves */
+.highlight-move.square-empty::after {
+    content: "";
+    display: block;
+    width: 30%;
+    height: 30%;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.4); /* Semi-transparent darker dot for better visibility */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1; /* Ensure dot is below pieces but above background highlight */
 }
 
 /* Ensure pieces on highlighted squares are still visible and centered */
 .square-55d63.highlight-selected .piece-417db,
 .square-55d63.highlight-move .piece-417db {
-    z-index: 2; /* Ensures piece is above the highlight */
+    z-index: 2; /* Ensures piece is above the highlight and dot */
 }
 
-/* --- END NEW CSS --- */
+/* Ensure chessboard.js notation is visible */
+.notation-32381 {
+    font-size: 0.75em; /* Adjust as needed */
+    color: #6c757d; /* A subtle grey */
+}
 
 </style>
 
