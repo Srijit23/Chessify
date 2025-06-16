@@ -264,6 +264,8 @@ body {
     box-shadow: 0 15px 35px rgba(0, 119, 182, 0.15);
     animation: fadeZoom 0.6s ease-in-out;
     transition: none; /* Removed scale transition to avoid layout issues */
+     touch-action: none;
+    -ms-touch-action: none; /* For older IE/Edge */
 }
 
 /* Removed board zoom on hover */
