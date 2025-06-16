@@ -9,26 +9,8 @@ body {
     margin: 0;
     padding: 0;
     transition: all 0.5s ease-in-out;
+    scroll-behavior: smooth;
 }
-.hero-section::before {
-    content: "";
-    position: absolute;
-    top: -50px;
-    left: -50px;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, #ffffff55 10%, transparent 70%);
-    animation: pulse-bg 10s infinite;
-
-    /* 🔥 Fix added below */
-    pointer-events: none; /* ✅ Allows clicks to pass through */
-    z-index: 0;            /* Make sure it's behind other content */
-}
-.hero-content {
-    position: relative;
-    z-index: 1;
-}
-
 
 /* Navbar */
 .navbar {
@@ -48,6 +30,12 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
+    transition: none;
+}
+
+.navbar-brand:hover {
+    color: inherit;
+    text-decoration: none;
 }
 
 .brand-logo {
@@ -55,6 +43,13 @@ body {
     height: 38px;
     border-radius: 50%;
     object-fit: cover;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    border: 2px solid #0077b6;
+    transition: transform 0.3s ease;
+}
+
+.brand-logo:hover {
+    transform: rotate(5deg) scale(1.05);
 }
 
 .nav-link {
@@ -75,6 +70,7 @@ body {
     text-align: center;
     position: relative;
     overflow: hidden;
+    animation: fadeZoom 1s ease-in-out;
 }
 
 .hero-section::before {
@@ -86,15 +82,13 @@ body {
     height: 200%;
     background: radial-gradient(circle, #ffffff55 10%, transparent 70%);
     animation: pulse-bg 10s infinite;
+    pointer-events: none;
+    z-index: 0;
 }
 
-@keyframes pulse-bg {
-    0%, 100% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.05);
-    }
+.hero-content {
+    position: relative;
+    z-index: 1;
 }
 
 .hero-content h1 {
@@ -112,17 +106,20 @@ body {
     animation: fadeUp 1.6s ease-out;
 }
 
+/* Buttons */
 .btn {
     font-weight: 600;
     padding: 12px 28px;
     border-radius: 50px;
     transition: all 0.3s ease;
+    cursor: pointer;
 }
 
 .btn-primary {
     background-color: #0077b6;
     border: none;
     box-shadow: 0 4px 12px rgba(0, 119, 182, 0.3);
+    color: #fff;
 }
 
 .btn-primary:hover {
@@ -149,11 +146,13 @@ body {
     margin: auto;
     box-shadow: 0 0 25px rgba(0, 119, 182, 0.2);
     animation: fadeZoom 1s ease-in-out;
+    background-color: #fdfdfd;
+    border: 3px solid #0077b6;
+    transition: transform 0.3s ease-in-out;
 }
 
 .board-container:hover #board {
     transform: scale(1.015);
-    transition: transform 0.3s ease-in-out;
 }
 
 /* Chess pieces drag effect */
@@ -278,6 +277,15 @@ footer {
     to {
         opacity: 1;
         transform: scale(1);
+    }
+}
+
+@keyframes pulse-bg {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
     }
 }
 
