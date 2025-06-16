@@ -11,11 +11,12 @@ body {
     scroll-behavior: smooth;
     animation: pageEnter 0.7s ease-in;
 }
+
 .brand-name {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 600;
-  font-size: 1.2rem;
-  color: white;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 1.2rem;
+    color: white;
 }
 
 /* Modified Brand Styles */
@@ -25,7 +26,7 @@ body {
     color: #0077b6;
     display: flex;
     align-items: center;
-    gap: 6px; /* Reduced gap between logo and text */
+    gap: 4px; /* Reduced gap between logo and text */
 }
 
 .brand-logo {
@@ -36,20 +37,20 @@ body {
     border: 2px solid black;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     transition: transform 0.3s ease;
-    margin-right: 4px; /* Optional fine-tuning */
+    margin-right: 2px; /* Small margin for tighter spacing */
 }
 
 .airsland-name {
     font-family: 'Merriweather', serif;
     font-size: 25px;
-    color: #87ceeb; /* Changed from cyan to sky blue */
+    color: #87ceeb; /* Sky blue */
     font-weight: 700;
     margin-left: 0; /* Removed extra margin */
     transition: all 0.3s ease-in-out;
 }
 
 .airsland-name:hover {
-    color: #00bfff; /* A deeper sky blue on hover */
+    color: #00bfff;
     transform: scale(1.05);
 }
 
@@ -78,96 +79,93 @@ body {
     box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
 }
 
-
-
 /* Loader Container */
 #loading-screen {
-  position: fixed;
-  inset: 0;
-  background: linear-gradient(135deg, #e1f5fe, #ffffff);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  transition: opacity 1.5s ease, visibility 1.5s ease;
-  opacity: 1;
-  visibility: visible;
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg, #e1f5fe, #ffffff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    transition: opacity 1.5s ease, visibility 1.5s ease;
+    opacity: 1;
+    visibility: visible;
 }
 
 /* Hide when page loads */
 #loading-screen.hide-loader {
-  opacity: 0;
-  visibility: hidden;
+    opacity: 0;
+    visibility: hidden;
 }
 
 /* Loader Card */
 .loader-card {
-  width: 90%;
-  max-width: 500px;
-  background: #fff;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 20px 50px rgba(0, 123, 255, 0.3);
-  font-family: 'Merriweather', serif;
-  text-align: center;
-  animation: fadeInCard 1.2s ease-out;
+    width: 90%;
+    max-width: 500px;
+    background: #fff;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0, 123, 255, 0.3);
+    font-family: 'Merriweather', serif;
+    text-align: center;
+    animation: fadeInCard 1.2s ease-out;
 }
 
 /* Banner Image */
 .loader-banner {
-  width: 100%;
-  height: 220px;
-  object-fit: cover;
-  border-bottom: 2px solid #b3e5fc;
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-bottom: 2px solid #b3e5fc;
 }
 
 /* Content Inside Card */
 .loader-content {
-  padding: 25px;
-  background: #f0faff;
+    padding: 25px;
+    background: #f0faff;
 }
 
 .loader-content h1 {
-  font-size: 2rem;
-  color: #01579b;
-  margin-bottom: 10px;
+    font-size: 2rem;
+    color: #01579b;
+    margin-bottom: 10px;
 }
 
 .loader-content p {
-  font-size: 1.1rem;
-  color: #0277bd;
-  margin-bottom: 20px;
+    font-size: 1.1rem;
+    color: #0277bd;
+    margin-bottom: 20px;
 }
 
 /* Spinner */
 .loader-spinner {
-  width: 50px;
-  height: 50px;
-  border: 5px solid #81d4fa;
-  border-top: 5px solid transparent;
-  border-radius: 50%;
-  margin: 0 auto;
-  animation: spin 1s linear infinite;
+    width: 50px;
+    height: 50px;
+    border: 5px solid #81d4fa;
+    border-top: 5px solid transparent;
+    border-radius: 50%;
+    margin: 0 auto;
+    animation: spin 1s linear infinite;
 }
 
 /* Animations */
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 @keyframes fadeInCard {
-  from {
-    transform: translateY(30px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
-
 
 .brand-logo:hover {
     transform: rotate(4deg) scale(1.08);
@@ -277,7 +275,6 @@ body {
     transform: scale(1.02);
 }
 
-/* Chess pieces drag effect */
 .piece-417db {
     transition: transform 0.2s ease-in-out;
 }
@@ -305,7 +302,6 @@ body {
     color: #0077b6;
 }
 
-/* Controls */
 .form-select,
 .form-check-input {
     background-color: #f9f9f9;
@@ -318,14 +314,12 @@ body {
     border-color: #0077b6;
 }
 
-/* Game Status */
 .alert-info {
     background-color: #d0f0ff;
     color: #0077b6;
     border: none;
 }
 
-/* Move History */
 .move-history {
     background-color: rgba(255, 255, 255, 0.6);
     padding: 10px;
@@ -429,4 +423,4 @@ footer {
     .tutorial-card {
         margin-bottom: 20px;
     }
-}       
+}
