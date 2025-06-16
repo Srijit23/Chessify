@@ -212,9 +212,10 @@ function deselectPiece() {
 
 // Initialize the game board
 function initializeBoard(orientation) {
-    console.log("Initializing board...");
+    console.log("Initializing board with orientation:", orientation); // Enhanced log
     if (board) {
         board.destroy(); // Destroy existing board instance to reset it
+        console.log("Existing board destroyed."); // Log destruction
     }
 
     const config = {
@@ -226,6 +227,7 @@ function initializeBoard(orientation) {
     };
 
     board = Chessboard('board', config);
+    console.log("New Chessboard instance created."); // Log creation
     $(window).resize(() => {
         board.resize();
         bindSquareClickHandlers(); // Re-bind on resize
@@ -238,33 +240,35 @@ function initializeBoard(orientation) {
 
 // Handle room creation
 function handleRoomCreated(data) {
+    console.log("Room created message received:", data); // Enhanced log
     currentRoom = data.roomId;
     playerColor = data.color; // 'white' or 'black'
     $('#currentRoom').text(currentRoom);
     $('#playerColor').text(playerColor);
-    $('#roomControls').hide();
-    $('#gameArea').show();
+    $('#roomControls').hide(); // Hides the room creation/join UI
+    $('#gameArea').show();    // SHOWS THE GAME AREA (chessboard)
     showStatus('Waiting for opponent to join...', 'info');
     initializeBoard(playerColor); // Initialize board with player's color
 }
 
 // Handle game start
 function handleGameStart(data) {
-    console.log('Game starting:', data);
+    console.log('Game starting message received:', data); // Enhanced log
     currentRoom = data.roomId;
-    playerColor = data.color; // 'white' or 'black'
+    playerColor = data.color; // 'white' or 'black' - Crucial for joining player
     game = new Chess(); // Reset the game state
 
     // Initialize the board with the correct orientation
-    initializeBoard(playerColor);
+    initializeBoard(playerColor); // This MUST initialize for the joining player too
 
     // Set turn based on initial game state and player color
     isMyTurn = (playerColor === 'white' && game.turn() === 'w') || (playerColor === 'black' && game.turn() === 'b');
 
     $('#currentRoom').text(currentRoom);
     $('#playerColor').text(playerColor);
-    $('#roomControls').hide();
-    $('#gameArea').show();
+    $('#roomControls').hide(); // Hides the room creation/join UI
+    $('#gameArea').show();    // SHOWS THE GAME AREA (chessboard) for BOTH players
+    console.log("Game Area shown, currentRoom set, playerColor set."); // Enhanced log
 
     showStatus(isMyTurn ? 'Your turn' : "Opponent's turn", 'info');
     enableGameControls();
@@ -415,7 +419,7 @@ $(document).ready(() => {
     // Initial chessboard setup when the page loads, using a default 'white' orientation.
     // This ensures 'board' is initialized and ready for first interactions.
     // Buttons start disabled and get enabled on WebSocket connection.
-    initializeBoard('white');
+    initializeBoard('white'); // Ensure board is initialized
     $('#createRoom, #joinRoom').prop('disabled', true); // Start disabled
 
     // Connect to server when page loads (this will enable buttons on open)
