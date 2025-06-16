@@ -44,14 +44,14 @@ body {
 .airsland-name {
     font-family: 'Merriweather', serif;
     font-size: 24px;
-    color: #00bfff; /* Sky blue */
+    color: #0077b6; /* Sky blue */
     font-weight: 700;
     margin: 0; /* Tight alignment */
     transition: all 0.3s ease-in-out;
 }
 
 .airsland-name:hover {
-    color: #00bfff;
+    color: #0077b6;
     transform: scale(1.05);
 }
 
