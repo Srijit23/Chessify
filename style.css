@@ -20,14 +20,13 @@ body {
 }
 
 /* Modified Brand Styles */
-/* Modified Brand Styles */
 .navbar-brand {
     font-weight: 800;
     font-size: 1.75rem;
     color: #0077b6;
     display: flex;
     align-items: center;
-   
+    gap: 10px; /* Add small gap between logo and text */
 }
 
 .brand-logo {
@@ -38,15 +37,15 @@ body {
     border: 2px solid black;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     transition: transform 0.3s ease;
-    margin: 0; /* Removed any spacing */
+    margin: 0;
 }
 
 .airsland-name {
     font-family: 'Merriweather', serif;
     font-size: 24px;
-    color: #0077b6; /* Sky blue */
+    color: skyblue; /* Changed to sky blue */
     font-weight: 700;
-    margin: 0; /* Tight alignment */
+    margin: 0;
     transition: all 0.3s ease-in-out;
 }
 
@@ -94,13 +93,11 @@ body {
     visibility: visible;
 }
 
-/* Hide when page loads */
 #loading-screen.hide-loader {
     opacity: 0;
     visibility: hidden;
 }
 
-/* Loader Card */
 .loader-card {
     width: 90%;
     max-width: 500px;
@@ -113,7 +110,6 @@ body {
     animation: fadeInCard 1.2s ease-out;
 }
 
-/* Banner Image */
 .loader-banner {
     width: 100%;
     height: 220px;
@@ -121,7 +117,6 @@ body {
     border-bottom: 2px solid #b3e5fc;
 }
 
-/* Content Inside Card */
 .loader-content {
     padding: 25px;
     background: #f0faff;
@@ -139,7 +134,6 @@ body {
     margin-bottom: 20px;
 }
 
-/* Spinner */
 .loader-spinner {
     width: 50px;
     height: 50px;
@@ -150,7 +144,6 @@ body {
     animation: spin 1s linear infinite;
 }
 
-/* Animations */
 @keyframes spin {
     to {
         transform: rotate(360deg);
@@ -183,7 +176,6 @@ body {
     color: #0077b6;
 }
 
-/* Hero Section */
 .hero-section {
     background: linear-gradient(to right, #e0f7fa, #caf0f8);
     padding: 100px 20px;
@@ -226,7 +218,6 @@ body {
     animation: fadeUp 1.6s ease-out;
 }
 
-/* Buttons */
 .btn {
     font-weight: 600;
     padding: 12px 28px;
@@ -258,7 +249,6 @@ body {
     transform: scale(1.05);
 }
 
-/* Chessboard Styles */
 #board {
     max-width: 480px;
     border-radius: 20px;
@@ -284,7 +274,6 @@ body {
     transform: scale(1.1);
 }
 
-/* Card Controls */
 .card {
     background: rgba(255, 255, 255, 0.6);
     border-radius: 16px;
@@ -333,7 +322,6 @@ body {
     backdrop-filter: blur(8px);
 }
 
-/* Tutorials Section */
 .tutorial-card {
     border-radius: 16px;
     overflow: hidden;
@@ -357,7 +345,6 @@ body {
     background-color: transparent;
 }
 
-/* Footer */
 footer {
     background: rgba(255, 255, 255, 0.6);
     backdrop-filter: blur(8px);
@@ -368,7 +355,6 @@ footer {
     border-top: 1px solid #ddd;
 }
 
-/* Scrollbars */
 ::-webkit-scrollbar {
     width: 8px;
 }
@@ -380,7 +366,6 @@ footer {
     background-color: #eee;
 }
 
-/* Key Animations */
 @keyframes fadeUp {
     from {
         opacity: 0;
@@ -412,7 +397,6 @@ footer {
     }
 }
 
-/* Responsive */
 @media (max-width: 768px) {
     .hero-content h1 {
         font-size: 2.2rem;
