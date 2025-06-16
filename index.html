@@ -174,14 +174,15 @@
     <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="script.js"></script>
-   <script>
-  // Loader lasts 8 seconds
-  window.addEventListener("load", function () {
+ <script>
+  window.addEventListener('load', () => {
+    const loader = document.getElementById('loading-screen');
     setTimeout(() => {
-      document.getElementById("loading-screen").classList.add("hide-loader");
-    }, 8000); // 8000 ms = 8 sec
+      loader.classList.add('hide-loader');
+    }, 5000); // 5 seconds
   });
 </script>
+
 
 
 </body>
