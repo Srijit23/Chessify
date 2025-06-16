@@ -1,39 +1,35 @@
-
 let board = null;
 let game = new Chess();
 let stockfish = null;
 let userColor = 'w';
 let isComputerThinking = false;
-let currentSkillLevel = 10; // Default skill level (1-20)
+let currentSkillLevel = 10; // Default skill level
 
 // Initialize Stockfish
 function initStockfish() {
     try {
         stockfish = new Worker('js/stockfish.js');
-        
+
         stockfish.onmessage = function(event) {
             console.log("Stockfish says:", event.data);
-            
-            if (typeof event.data === 'string') {
-                if (event.data.includes('bestmove')) {
-                    const tokens = event.data.split(' ');
-                    const move = tokens[1];
-                    if (move && move !== '(none)') {
-                        makeComputerMove(move);
-                    }
+
+            if (typeof event.data === 'string' && event.data.includes('bestmove')) {
+                const tokens = event.data.split(' ');
+                const move = tokens[1];
+                if (move && move !== '(none)') {
+                    makeComputerMove(move);
                 }
             }
         };
 
-        stockfish.onerror = function(error) {
-            console.error("Stockfish error:", error);
+        stockfish.onerror = (err) => {
+            console.error("Stockfish error:", err);
         };
 
-        // Configure Stockfish
         stockfish.postMessage('uci');
         stockfish.postMessage(`setoption name Skill Level value ${currentSkillLevel}`);
         stockfish.postMessage('isready');
-        
+
         console.log('Stockfish initialized');
     } catch (err) {
         console.error('Error initializing Stockfish:', err);
@@ -49,7 +45,7 @@ function setDifficulty(level) {
     }
 }
 
-// Initialize the game board
+// Initialize board
 function initializeBoard() {
     const config = {
         draggable: true,
@@ -60,74 +56,68 @@ function initializeBoard() {
         onSnapEnd: onSnapEnd,
         showNotation: true
     };
-    
+
     board = Chessboard('board', config);
-    $(window).resize(() => {
-        board.resize();
-    });
+    $(window).resize(() => board.resize());
 }
 
-// Initialize when document is ready
+// On document ready
 $(document).ready(function() {
     initializeBoard();
     initStockfish();
     initNavbarBehavior();
-    
-    // Setup event listeners
+
     $('#startBtn').on('click', newGame);
     $('#undoBtn').on('click', undoMove);
     $('#resignBtn').on('click', resignGame);
+
     $('input[name="playAs"]').on('change', function() {
         userColor = $('#playAsWhite').is(':checked') ? 'w' : 'b';
         newGame();
     });
-    
-    // Setup difficulty selector
+
     $('#difficulty').on('change', function() {
         const level = parseInt($(this).val());
         setDifficulty(level);
-        // Show difficulty change notification
-        const difficulty = level <= 5 ? 'Easy' : level <= 10 ? 'Medium' : level <= 15 ? 'Hard' : 'Expert';
+
+        const difficulty = level <= 5 ? 'Easy' :
+                           level <= 10 ? 'Medium' :
+                           level <= 15 ? 'Hard' : 'Expert';
+
         $('#gameStatus')
             .removeClass()
             .addClass('alert alert-info')
             .text(`Difficulty set to ${difficulty} (Level ${level})`);
     });
-    
+
     updateStatus();
 });
 
-// Initialize navbar scroll behavior
+// Navbar scroll hide/show
 function initNavbarBehavior() {
     let lastScrollTop = 0;
     const navbar = $('.navbar');
-    
+
     $(window).scroll(function() {
         const scrollTop = $(this).scrollTop();
-        
-        // Show navbar when scrolling up or at the top
-        if (scrollTop <= 0) {
+
+        if (scrollTop <= 0 || scrollTop < lastScrollTop) {
             navbar.removeClass('navbar-hidden');
-        } else if (scrollTop > lastScrollTop) {
-            // Scrolling down
-            navbar.addClass('navbar-hidden');
         } else {
-            // Scrolling up
-            navbar.removeClass('navbar-hidden');
+            navbar.addClass('navbar-hidden');
         }
-        
+
         lastScrollTop = scrollTop;
     });
 }
 
+// Chess events
 function onDragStart(source, piece) {
-    if (game.game_over() || isComputerThinking || 
-        game.turn() !== userColor || 
-        (game.turn() === 'w' && piece.search(/^b/) !== -1) ||
-        (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
-        return false;
-    }
-    return true;
+    return !game.game_over() &&
+           !isComputerThinking &&
+           game.turn() === userColor &&
+           ((userColor === 'w' && piece.startsWith('w')) || 
+            (userColor === 'b' && piece.startsWith('b')));
 }
 
 function onDrop(source, target) {
@@ -137,11 +127,9 @@ function onDrop(source, target) {
         promotion: 'q'
     });
 
-    if (move === null) return 'snapback';
+    if (!move) return 'snapback';
 
-    // Play move sound
     playMoveSound(move);
-    
     board.position(game.fen());
     updateStatus();
     addMoveToHistory(move);
@@ -156,17 +144,13 @@ function onSnapEnd() {
 }
 
 function makeComputerThink() {
-    if (!stockfish || isComputerThinking) {
-        console.error('Cannot make computer move:', !stockfish ? 'Engine not loaded' : 'Computer is thinking');
-        return;
-    }
-    
+    if (!stockfish || isComputerThinking) return;
+
     isComputerThinking = true;
     updateStatus();
-    
+
     try {
-        const fen = game.fen();
-        stockfish.postMessage('position fen ' + fen);
+        stockfish.postMessage('position fen ' + game.fen());
         stockfish.postMessage('go movetime 1000');
     } catch (err) {
         console.error('Error during computer move:', err);
@@ -176,12 +160,7 @@ function makeComputerThink() {
 }
 
 function makeComputerMove(moveStr) {
-    if (!moveStr || moveStr.length < 4) {
-        console.error('Invalid move string:', moveStr);
-        isComputerThinking = false;
-        updateStatus();
-        return;
-    }
+    if (!moveStr || moveStr.length < 4) return;
 
     try {
         const move = game.move({
@@ -190,22 +169,21 @@ function makeComputerMove(moveStr) {
             promotion: moveStr.length > 4 ? moveStr[4] : 'q'
         });
 
-        board.position(game.fen());
         if (move) {
-            // Play move sound
+            board.position(game.fen());
             playMoveSound(move);
             addMoveToHistory(move);
             console.log('Computer moved:', move.san);
         }
     } catch (err) {
-        console.error('Error making computer move:', err);
+        console.error('Invalid computer move:', err);
     }
 
     isComputerThinking = false;
     updateStatus();
 }
 
-// Play sound based on move type
+// Sounds
 function playMoveSound(move) {
     const audio = new Audio();
     if (move.captured) {
@@ -215,24 +193,25 @@ function playMoveSound(move) {
     } else {
         audio.src = 'https://lichess1.org/assets/sound/standard/Move.ogg';
     }
-    audio.play().catch(() => {}); // Ignore errors if sound can't play
+    audio.play().catch(() => {});
 }
 
+// Move history
 function addMoveToHistory(move) {
     const moveNumber = Math.floor((game.history().length + 1) / 2);
     const moveText = `${moveNumber}. ${move.san}`;
-    
+
     const moveDiv = $('<div>')
         .text(moveText)
         .addClass('move-item');
-    
-    // Highlight the last move
+
     $('#moveHistory div').removeClass('latest-move');
     moveDiv.addClass('latest-move');
-    
+
     $('#moveHistory').prepend(moveDiv);
 }
 
+// Status updater
 function updateStatus() {
     let status = '';
 
@@ -246,13 +225,9 @@ function updateStatus() {
         playGameEndSound(true);
     } else if (game.in_draw()) {
         status = 'Game Over - Draw';
-        if (game.in_stalemate()) {
-            status += ' (Stalemate)';
-        } else if (game.in_threefold_repetition()) {
-            status += ' (Threefold Repetition)';
-        } else if (game.insufficient_material()) {
-            status += ' (Insufficient Material)';
-        }
+        if (game.in_stalemate()) status += ' (Stalemate)';
+        else if (game.in_threefold_repetition()) status += ' (Threefold Repetition)';
+        else if (game.insufficient_material()) status += ' (Insufficient Material)';
         $('#gameStatus').removeClass().addClass('alert alert-info');
         playGameEndSound(false);
     } else {
@@ -269,43 +244,45 @@ function updateStatus() {
     $('#gameStatus').text(status);
 }
 
-// Play game end sound
+// Game end sound
 function playGameEndSound(isCheckmate) {
-    const audio = new Audio();
-    audio.src = isCheckmate ? 
-        'https://lichess1.org/assets/sound/standard/Victory.ogg' :
-        'https://lichess1.org/assets/sound/standard/Draw.ogg';
+    const audio = new Audio(
+        isCheckmate
+            ? 'https://lichess1.org/assets/sound/standard/Victory.ogg'
+            : 'https://lichess1.org/assets/sound/standard/Draw.ogg'
+    );
     audio.play().catch(() => {});
 }
 
+// Game control
 function newGame() {
     game.reset();
     board.start();
     $('#moveHistory').empty();
-    
+
     if (userColor === 'b') {
         setTimeout(makeComputerThink, 500);
     }
-    
+
     updateStatus();
 }
 
 function undoMove() {
     if (isComputerThinking) return;
-    
-    game.undo();
-    game.undo();
+
+    game.undo(); // player's move
+    game.undo(); // computer's move
     board.position(game.fen());
-    
+
     $('#moveHistory div:first').remove();
     $('#moveHistory div:first').remove();
-    
+
     updateStatus();
 }
 
 function resignGame() {
     if (isComputerThinking) return;
-    
+
     game.reset();
     board.start();
     $('#moveHistory').empty();
