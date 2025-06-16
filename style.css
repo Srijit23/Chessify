@@ -11,6 +11,10 @@ body {
     scroll-behavior: smooth;
     animation: pageEnter 0.7s ease-in;
 }
+.square-55d63.highlight-tap {
+    background-color: #b9eaff !important;
+    box-shadow: inset 0 0 0 2px #00aaff;
+}
 
 .brand-name {
     font-family: 'Poppins', sans-serif;
