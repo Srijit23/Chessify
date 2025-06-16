@@ -51,18 +51,16 @@ function initializeBoard() {
         board.resize();
     });
 
+    // Tap-to-move handler
     $('#board').on('click', '.square-55d63', function () {
         if (isComputerThinking || game.game_over()) return;
 
         const square = $(this).attr('data-square');
-
-        // Tap-to-select
         if (!tapSquare) {
             const piece = game.get(square);
             if (!piece || piece.color !== userColor) return;
             tapSquare = square;
             highlightSquare(square);
-            showLegalMoves(square);
         } else {
             if (square === tapSquare) {
                 tapSquare = null;
@@ -84,7 +82,6 @@ function initializeBoard() {
             playMoveSound(move);
             addMoveToHistory(move);
             updateStatus();
-
             if (!game.game_over()) setTimeout(makeComputerThink, 250);
         }
     });
@@ -92,18 +89,11 @@ function initializeBoard() {
 
 function highlightSquare(square) {
     removeHighlight();
-    $(`[data-square='${square}']`).css('background-color', '#b9eaff');
-}
-
-function showLegalMoves(fromSquare) {
-    const moves = game.moves({ square: fromSquare, verbose: true });
-    moves.forEach(move => {
-        $(`[data-square="${move.to}"]`).css('background-color', '#f0d9b5');
-    });
+    $(`[data-square='${square}']`).addClass('highlight-tap');
 }
 
 function removeHighlight() {
-    $('.square-55d63').css('background-color', '');
+    $('.square-55d63').removeClass('highlight-tap');
 }
 
 $(document).ready(function () {
@@ -153,13 +143,9 @@ function initNavbarBehavior() {
 }
 
 function onDragStart(source, piece) {
-    if (
-        game.game_over() ||
-        isComputerThinking ||
-        game.turn() !== userColor ||
+    if (game.game_over() || isComputerThinking || game.turn() !== userColor ||
         (game.turn() === 'w' && piece.startsWith('b')) ||
-        (game.turn() === 'b' && piece.startsWith('w'))
-    ) {
+        (game.turn() === 'b' && piece.startsWith('w'))) {
         return false;
     }
     return true;
