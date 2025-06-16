@@ -10,6 +10,19 @@
   <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    .navbar-brand .brand-logo {
+      height: 40px;
+    }
+
+    .navbar-brand .airsland-name {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      font-size: 1.5rem;
+      color: skyblue !important;
+      margin-left: 6px; /* Reduced space between logo and text */
+    }
+  </style>
 </head>
 <body>
 
@@ -28,9 +41,8 @@
   <!-- Navigation Bar -->
   <nav class="navbar navbar-expand-lg navbar-dark">
     <div class="container">
-      <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+      <a class="navbar-brand d-flex align-items-center" href="#">
         <img src="images/logo.png" alt="Chess Piece" class="brand-logo">
-       
         <span class="airsland-name">Airsland</span>
       </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -46,143 +58,138 @@
     </div>
   </nav>
 
-    <!-- Hero Section -->
-    <header class="hero-section">
-        <div class="hero-content">
-            <h1>Master the Game of Chess</h1>
-            <p>Learn, practice, and compete with players worldwide</p>
-            <div class="d-flex justify-content-center gap-3">
-                <a href="#practice" class="btn btn-primary btn-lg">Start Playing</a>
-                <a href="play.html" class="btn btn-outline-light btn-lg">Play Online</a>
+  <!-- Hero Section -->
+  <header class="hero-section">
+    <div class="hero-content">
+      <h1>Master the Game of Chess</h1>
+      <p>Learn, practice, and compete with players worldwide</p>
+      <div class="d-flex justify-content-center gap-3">
+        <a href="#practice" class="btn btn-primary btn-lg">Start Playing</a>
+        <a href="play.html" class="btn btn-outline-light btn-lg">Play Online</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Interactive Board Section -->
+  <section id="practice" class="py-5">
+    <div class="container">
+      <h2 class="text-center mb-4">Practice with Computer</h2>
+      <div class="row">
+        <div class="col-md-8">
+          <div class="board-container">
+            <div id="board"></div>
+            <div id="gameStatus" class="alert alert-info mt-3" role="alert">
+              Game starting...
             </div>
+          </div>
         </div>
-    </header>
 
-    <!-- Interactive Board Section -->
-    <section id="practice" class="py-5">
-        <div class="container">
-            <h2 class="text-center mb-4">Practice with Computer</h2>
-            <div class="row">
-                <div class="col-md-8">
-                    <div class="board-container">
-                        <div id="board"></div>
-                        <div id="gameStatus" class="alert alert-info mt-3" role="alert">
-                            Game starting...
-                        </div>
-                    </div>
+        <!-- Controls Column -->
+        <div class="col-md-4">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Game Controls</h5>
+              <div class="game-controls">
+                <div class="mb-3">
+                  <label class="form-label">Play as:</label>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="playAs" id="playAsWhite" value="white" checked>
+                    <label class="form-check-label" for="playAsWhite">White</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="playAs" id="playAsBlack" value="black">
+                    <label class="form-check-label" for="playAsBlack">Black</label>
+                  </div>
+                </div>
+                
+                <div class="mb-3">
+                  <label for="difficulty" class="form-label">Difficulty:</label>
+                  <select class="form-select" id="difficulty">
+                    <option value="5">Easy</option>
+                    <option value="10" selected>Medium</option>
+                    <option value="15">Hard</option>
+                    <option value="20">Expert</option>
+                  </select>
                 </div>
 
-                <!-- Controls Column -->
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Game Controls</h5>
-                            <div class="game-controls">
-                                <div class="mb-3">
-                                    <label class="form-label">Play as:</label>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="playAs" id="playAsWhite" value="white" checked>
-                                        <label class="form-check-label" for="playAsWhite">White</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="playAs" id="playAsBlack" value="black">
-                                        <label class="form-check-label" for="playAsBlack">Black</label>
-                                    </div>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="difficulty" class="form-label">Difficulty:</label>
-                                    <select class="form-select" id="difficulty">
-                                        <option value="5">Easy</option>
-                                        <option value="10" selected>Medium</option>
-                                        <option value="15">Hard</option>
-                                        <option value="20">Expert</option>
-                                    </select>
-                                </div>
-
-                                <div class="mb-3">
-                                    <button id="startBtn" class="btn btn-primary">New Game</button>
-                                    <button id="undoBtn" class="btn btn-secondary">Undo Move</button>
-                                    <button id="resignBtn" class="btn btn-danger">Resign</button>
-                                </div>
-                                
-                                <div class="mt-4">
-                                    <h6>Move History:</h6>
-                                    <div id="moveHistory" class="move-history"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="mb-3">
+                  <button id="startBtn" class="btn btn-primary">New Game</button>
+                  <button id="undoBtn" class="btn btn-secondary">Undo Move</button>
+                  <button id="resignBtn" class="btn btn-danger">Resign</button>
                 </div>
+                
+                <div class="mt-4">
+                  <h6>Move History:</h6>
+                  <div id="moveHistory" class="move-history"></div>
+                </div>
+              </div>
             </div>
+          </div>
         </div>
-    </section>
+      </div>
+    </div>
+  </section>
 
-    <!-- Tutorials Section -->
-    <section id="tutorials" class="py-5 bg-light">
-        <div class="container">
-            <h2 class="text-center mb-4">Chess Tutorials</h2>
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="card tutorial-card">
-                        <img src="https://images.chesscomfiles.com/uploads/v1/images_users/tiny_mce/PedroPinhata/phpZBvM0d.png" 
-                             class="card-img-top" alt="Basic Openings">
-                        <div class="card-body">
-                            <h5 class="card-title">Basic Openings</h5>
-                            <p class="card-text">Learn fundamental chess openings and their principles.</p>
-                            <a href="#" class="btn btn-primary">Learn More</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card tutorial-card">
-                        <img src="https://images.chesscomfiles.com/uploads/v1/images_users/tiny_mce/PedroPinhata/phpuTejFE.png" 
-                             class="card-img-top" alt="Tactics">
-                        <div class="card-body">
-                            <h5 class="card-title">Tactics</h5>
-                            <p class="card-text">Master essential tactical patterns and combinations.</p>
-                            <a href="#" class="btn btn-primary">Learn More</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card tutorial-card">
-                        <img src="https://images.chesscomfiles.com/uploads/v1/images_users/tiny_mce/PedroPinhata/phpVbh5cw.png" 
-                             class="card-img-top" alt="Endgame">
-                        <div class="card-body">
-                            <h5 class="card-title">Endgame</h5>
-                            <p class="card-text">Study crucial endgame positions and techniques.</p>
-                            <a href="#" class="btn btn-primary">Learn More</a>
-                        </div>
-                    </div>
-                </div>
+  <!-- Tutorials Section -->
+  <section id="tutorials" class="py-5 bg-light">
+    <div class="container">
+      <h2 class="text-center mb-4">Chess Tutorials</h2>
+      <div class="row">
+        <div class="col-md-4">
+          <div class="card tutorial-card">
+            <img src="https://images.chesscomfiles.com/uploads/v1/images_users/tiny_mce/PedroPinhata/phpZBvM0d.png" class="card-img-top" alt="Basic Openings">
+            <div class="card-body">
+              <h5 class="card-title">Basic Openings</h5>
+              <p class="card-text">Learn fundamental chess openings and their principles.</p>
+              <a href="#" class="btn btn-primary">Learn More</a>
             </div>
+          </div>
         </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="bg-dark text-light py-4">
-        <div class="container text-center">
-            <p>&copy; 2025 SrijitChess. All rights reserved.</p>
+        <div class="col-md-4">
+          <div class="card tutorial-card">
+            <img src="https://images.chesscomfiles.com/uploads/v1/images_users/tiny_mce/PedroPinhata/phpuTejFE.png" class="card-img-top" alt="Tactics">
+            <div class="card-body">
+              <h5 class="card-title">Tactics</h5>
+              <p class="card-text">Master essential tactical patterns and combinations.</p>
+              <a href="#" class="btn btn-primary">Learn More</a>
+            </div>
+          </div>
         </div>
-    </footer>
+        <div class="col-md-4">
+          <div class="card tutorial-card">
+            <img src="https://images.chesscomfiles.com/uploads/v1/images_users/tiny_mce/PedroPinhata/phpVbh5cw.png" class="card-img-top" alt="Endgame">
+            <div class="card-body">
+              <h5 class="card-title">Endgame</h5>
+              <p class="card-text">Study crucial endgame positions and techniques.</p>
+              <a href="#" class="btn btn-primary">Learn More</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-    <!-- Scripts -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-    <script src="script.js"></script>
- <script>
-  window.addEventListener('load', () => {
-    const loader = document.getElementById('loading-screen');
-    setTimeout(() => {
-      loader.classList.add('hide-loader');
-    }, 5000); // 5 seconds
-  });
-</script>
+  <!-- Footer -->
+  <footer class="bg-dark text-light py-4">
+    <div class="container text-center">
+      <p>&copy; 2025 SrijitChess. All rights reserved.</p>
+    </div>
+  </footer>
 
-
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+  <script src="script.js"></script>
+  <script>
+    window.addEventListener('load', () => {
+      const loader = document.getElementById('loading-screen');
+      setTimeout(() => {
+        loader.classList.add('hide-loader');
+      }, 5000); // 5 seconds
+    });
+  </script>
 
 </body>
 </html>
