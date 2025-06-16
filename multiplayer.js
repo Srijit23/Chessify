@@ -1,7 +1,8 @@
+
 let board = null;
 let game = new Chess();
 let ws = null;
-let playerColor = 'white'; // 'white' or 'black'
+let playerColor = 'white';
 let currentRoom = '';
 let isMyTurn = false;
 let isConnected = false;
@@ -44,6 +45,7 @@ function connectToServer() {
     }
 }
 
+
 // Show status message
 function showStatus(message, type = 'info') {
     const alert = $('#gameStatus');
@@ -59,7 +61,7 @@ function showError(message) {
 function handleServerMessage(data) {
     try {
         console.log('Handling message:', data);
-        switch (data.type) {
+        switch(data.type) {
             case 'room_created':
                 handleRoomCreated(data);
                 break;
@@ -78,12 +80,6 @@ function handleServerMessage(data) {
             case 'error':
                 showError(data.message);
                 break;
-            case 'draw_offer': // Added draw offer handling
-                handleDrawOffer(data);
-                break;
-            case 'draw_response': // Added draw response handling
-                handleDrawResponse(data);
-                break;
             default:
                 console.log('Unknown message type:', data.type);
         }
@@ -94,70 +90,65 @@ function handleServerMessage(data) {
 }
 
 // Initialize the game board
-function initializeBoard(orientation) { // Added orientation parameter
+function initializeBoard() {
     if (board) {
-        board.destroy(); // Destroy existing board instance to reset it
+        board.destroy();
     }
 
     const config = {
-        draggable: true, // KEEP DRAG AND DROP ENABLED for multiplayer
+        draggable: true,
         position: 'start',
-        orientation: orientation, // Use the passed orientation
+        orientation: playerColor,
         pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
         onDragStart: onDragStart,
         onDrop: onDrop,
-        onSnapEnd: onSnapEnd,
-        showNotation: true // Keep notation visible
+        onSnapEnd: onSnapEnd
     };
-
+    
     board = Chessboard('board', config);
     $(window).resize(() => {
         board.resize();
     });
     updateStatus();
-    console.log("Board initialized with orientation:", orientation);
 }
 
 // Handle room creation
 function handleRoomCreated(data) {
     currentRoom = data.roomId;
-    playerColor = data.color; // 'white' or 'black'
+    playerColor = data.color;
     $('#currentRoom').text(currentRoom);
     $('#playerColor').text(playerColor);
     $('#roomControls').hide();
     $('#gameArea').show();
     showStatus('Waiting for opponent to join...', 'info');
-    initializeBoard(playerColor); // Initialize board with player's color
+    initializeBoard();
 }
 
 // Handle game start
 function handleGameStart(data) {
     console.log('Game starting:', data);
     currentRoom = data.roomId;
-    playerColor = data.color; // 'white' or 'black'
-    game = new Chess(); // Reset the game state
-    
-    // Initialize the board with the correct orientation before setting turn
-    initializeBoard(playerColor); // This ensures 'board' object is created
-
-    isMyTurn = (playerColor === 'white' && game.turn() === 'w') || (playerColor === 'black' && game.turn() === 'b');
+    playerColor = data.color;
+    isMyTurn = playerColor === 'white';
     
     $('#currentRoom').text(currentRoom);
     $('#playerColor').text(playerColor);
     $('#roomControls').hide();
     $('#gameArea').show();
-
+    
+    // Reset the game state
+    game = new Chess();
+    initializeBoard();
+    
     showStatus(isMyTurn ? 'Your turn' : "Opponent's turn", 'info');
     enableGameControls();
 }
 
 // Handle moves made by either player
 function handleMoveMade(data) {
-    console.log('Applying opponent move:', data.move);
     game.move(data.move);
     board.position(game.fen());
-    isMyTurn = true; // After opponent's move, it becomes your turn
-    playMoveSound(data.move);
+    isMyTurn = true;
     addMoveToHistory(data.move);
     updateStatus();
 }
@@ -191,20 +182,18 @@ function onDrop(source, target) {
         to: target,
         promotion: 'q'
     });
-
+    
     if (move === null) return 'snapback';
-
+    
     isMyTurn = false;
     ws.send(JSON.stringify({
         type: 'make_move',
-        move: move, // Send the verbose move object
-        fen: game.fen(),
-        roomId: currentRoom
+        move: move,
+        fen: game.fen()
     }));
-
+    
     addMoveToHistory(move);
     updateStatus();
-    return true; // Indicate that the move was valid for chessboard.js
 }
 
 // Update piece positions after snap animation
@@ -212,24 +201,12 @@ function onSnapEnd() {
     board.position(game.fen());
 }
 
-function playMoveSound(move) {
-    const audio = new Audio();
-    if (move.captured) {
-        audio.src = 'https://lichess1.org/assets/sound/standard/Capture.ogg';
-    } else if (move.san.includes('+')) {
-        audio.src = 'https://lichess1.org/assets/sound/standard/Check.ogg';
-    } else {
-        audio.src = 'https://lichess1.org/assets/sound/standard/Move.ogg';
-    }
-    audio.play().catch(() => { /* console.error("Audio playback failed:", error); */ });
-}
-
 // Add move to the move history
 function addMoveToHistory(move) {
-    const moveText = `${move.from}-${move.to}`; // Simplified for now, consider using move.san
+    const moveText = `${move.from}-${move.to}`;
     const $moveHistory = $('#moveHistory');
     const $moveItem = $('<div>').addClass('move-item').text(moveText);
-
+    
     $('.move-item').removeClass('latest-move');
     $moveItem.addClass('latest-move');
     $moveHistory.append($moveItem);
@@ -239,7 +216,7 @@ function addMoveToHistory(move) {
 // Update game status
 function updateStatus() {
     let status = '';
-
+    
     if (game.in_checkmate()) {
         status = 'Game over, ' + (game.turn() === 'w' ? 'black' : 'white') + ' wins by checkmate!';
         handleGameEnd(status);
@@ -247,62 +224,23 @@ function updateStatus() {
         status = 'Game over, drawn position!';
         handleGameEnd(status);
     } else {
-        status = (isMyTurn ? 'Your turn' : "Opponent's turn');
+        status = (isMyTurn ? 'Your turn' : "Opponent's turn");
         if (game.in_check()) {
             status += ', ' + (game.turn() === 'w' ? 'White' : 'Black') + ' is in check';
         }
     }
-
+    
     showStatus(status, 'info');
-    $('#gameStatusText').text(status); // Ensure this updates the text element
+    $('#gameStatusText').text(status);
 }
 
 // Handle game end
 function handleGameEnd(result) {
     ws.send(JSON.stringify({
         type: 'game_over',
-        result: result,
-        roomId: currentRoom // Send roomId for the server to handle
+        result: result
     }));
     disableGameControls();
-}
-
-// NEW: Handle Draw Offer (client-side confirmation)
-function handleDrawOffer(data) {
-    if (data.fromColor !== playerColor) { // If offer is from opponent
-        if (confirm(`Opponent offers a draw. Do you accept?`)) {
-            ws.send(JSON.stringify({
-                type: 'draw_response',
-                roomId: currentRoom,
-                accepted: true
-            }));
-            showStatus('Draw accepted. Game is a draw!', 'info');
-            game.reset(); // Reset game state for draw
-            board.start(); // Reset visual board
-            $('#moveHistory').empty();
-            disableGameControls();
-        } else {
-            ws.send(JSON.stringify({
-                type: 'draw_response',
-                roomId: currentRoom,
-                accepted: false
-            }));
-            showStatus('Draw declined.', 'info');
-        }
-    }
-}
-
-// NEW: Handle Draw Response
-function handleDrawResponse(data) {
-    if (data.accepted) {
-        showStatus('Opponent accepted the draw. Game is a draw!', 'info');
-        game.reset();
-        board.start();
-        $('#moveHistory').empty();
-        disableGameControls();
-    } else {
-        showStatus('Opponent declined the draw.', 'info');
-    }
 }
 
 // Enable game controls
@@ -317,12 +255,14 @@ function disableGameControls() {
 
 // Event listeners
 $(document).ready(() => {
-    // Connect to server when page loads
-    connectToServer();
-
-    // Initial chessboard setup when the page loads, using a default 'white' orientation
-    // This ensures 'board' is initialized and ready for first interactions.
-    initializeBoard('white'); 
+    // Initialize the board
+    board = Chessboard('board', {
+        position: 'start',
+        draggable: true,
+        onDragStart: onDragStart,
+        onDrop: onDrop,
+        onSnapEnd: onSnapEnd
+    });
 
     // Create room button click handler
     $('#createRoom').click(() => {
@@ -330,13 +270,13 @@ $(document).ready(() => {
             showError('Not connected to server');
             return;
         }
-
+        
         const roomId = Math.random().toString(36).substring(2, 8);
         ws.send(JSON.stringify({
             type: 'create_room',
             roomId: roomId
         }));
-
+        
         currentRoom = roomId;
         $('#currentRoom').text(roomId);
     });
@@ -347,18 +287,18 @@ $(document).ready(() => {
             showError('Not connected to server');
             return;
         }
-
+        
         const roomId = $('#roomId').val().trim();
         if (!roomId) {
             showError('Please enter a room ID');
             return;
         }
-
+        
         ws.send(JSON.stringify({
             type: 'join_room',
             roomId: roomId
         }));
-
+        
         currentRoom = roomId;
         $('#currentRoom').text(roomId);
     });
@@ -372,8 +312,7 @@ $(document).ready(() => {
                 result: 'resign',
                 winner: playerColor === 'white' ? 'black' : 'white'
             }));
-            // Call handleGameOver directly for immediate client-side update
-            handleGameOver({ result: `${playerColor} resigned. ${playerColor === 'white' ? 'Black' : 'White'} wins!` });
+            handleGameEnd('resign');
         }
     });
 
@@ -382,10 +321,12 @@ $(document).ready(() => {
         if (currentRoom && isConnected) {
             ws.send(JSON.stringify({
                 type: 'offer_draw',
-                roomId: currentRoom,
-                fromColor: playerColor // Send who is offering the draw
+                roomId: currentRoom
             }));
             showStatus('Draw offered to opponent', 'info');
         }
     });
 });
+
+// Connect to server when page loads
+connectToServer();
