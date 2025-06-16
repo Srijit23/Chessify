@@ -11,7 +11,26 @@ body {
     scroll-behavior: smooth;
     animation: pageEnter 0.7s ease-in;
 }
+.brand-name {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: white;
+}
 
+.airsland-name {
+  font-family: 'Merriweather', serif;
+  font-size: 1.1rem;
+  color: #00bcd4;
+  font-weight: 700;
+  margin-left: 0.5rem;
+  transition: all 0.3s ease-in-out;
+}
+
+.airsland-name:hover {
+  color: #03a9f4;
+  transform: scale(1.05);
+}
 @keyframes pageEnter {
     from {
         opacity: 0;
