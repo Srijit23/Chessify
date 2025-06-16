@@ -106,7 +106,7 @@ function initializeBoard() {
         // Optional: Re-bind handlers on resize. Could be overkill, but ensures robustness.
         // bindSquareClickHandlers();
     });
-    updateStatus();
+   
 
     // Initial binding of click handlers after board setup
     // Use a small timeout to ensure DOM elements are fully in place
