@@ -27,7 +27,7 @@ body {
     color: #0077b6;
     display: flex;
     align-items: center;
-    gap: 2px; /* Further reduced gap */
+   
 }
 
 .brand-logo {
@@ -47,7 +47,6 @@ body {
     color: #87ceeb; /* Sky blue */
     font-weight: 700;
     margin: 0; /* Tight alignment */
-    padding-left: 4px; /* Very small gap */
     transition: all 0.3s ease-in-out;
 }
 
