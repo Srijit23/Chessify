@@ -4,7 +4,7 @@ let stockfish = null;
 let userColor = 'w';
 let isComputerThinking = false;
 let currentSkillLevel = 10;
-let selectedSquare = null;
+let tapSquare = null;
 
 function initStockfish() {
     stockfish = new Worker('js/stockfish.js');
@@ -22,90 +22,83 @@ function initStockfish() {
     stockfish.postMessage('isready');
 }
 
-function setDifficulty(level) {
-    currentSkillLevel = level;
-    if (stockfish) {
-        stockfish.postMessage(`setoption name Skill Level value ${level}`);
-    }
-}
-
 function initializeBoard() {
-    board = Chessboard('board', {
+    console.log("Initializing board...");
+
+    const config = {
         draggable: true,
         position: 'start',
         pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
-        onDragStart,
-        onDrop,
-        onSnapEnd,
+        onDragStart: onDragStart,
+        onDrop: onDrop,
+        onSnapEnd: onSnapEnd,
         showNotation: true
-    });
+    };
+
+    board = Chessboard('board', config);
 
     $(window).resize(() => board.resize());
 
-    // Tap-to-move handler
-    $('#board').on('click', 'div[class^="square-"]', function () {
-        if (game.game_over() || isComputerThinking) return;
+    setTimeout(() => {
+        $('#board .square-55d63').on('click', function () {
+            const square = $(this).attr('data-square');
+            console.log("Clicked square:", square);
 
-        const square = $(this).attr('data-square');
-        const piece = game.get(square);
+            if (isComputerThinking || game.game_over()) return;
 
-        // 1st tap - selecting
-        if (!selectedSquare) {
-            if (!piece || piece.color !== userColor || game.turn() !== userColor) return;
-            selectedSquare = square;
-            highlightSelectionAndMoves(square);
-        }
-        // 2nd tap - attempting to move
-        else {
-            if (square === selectedSquare) {
-                selectedSquare = null;
-                removeHighlights();
-                return;
+            if (!tapSquare) {
+                const piece = game.get(square);
+                if (!piece || piece.color !== userColor) return;
+                tapSquare = square;
+                highlightSquare(square);
+            } else {
+                if (square === tapSquare) {
+                    tapSquare = null;
+                    removeHighlight();
+                    return;
+                }
+
+                const move = game.move({
+                    from: tapSquare,
+                    to: square,
+                    promotion: 'q'
+                });
+
+                tapSquare = null;
+                removeHighlight();
+
+                if (move === null) return;
+
+                board.position(game.fen());
+                playMoveSound(move);
+                addMoveToHistory(move);
+                updateStatus();
+
+                if (!game.game_over()) setTimeout(makeComputerThink, 250);
             }
-
-            const move = game.move({
-                from: selectedSquare,
-                to: square,
-                promotion: 'q'
-            });
-
-            selectedSquare = null;
-            removeHighlights();
-
-            if (move === null) return;
-
-            board.position(game.fen());
-            playMoveSound(move);
-            addMoveToHistory(move);
-            updateStatus();
-
-            if (!game.game_over()) setTimeout(makeComputerThink, 300);
-        }
-    });
+        });
+    }, 500); // delay ensures board is ready
 }
 
-function highlightSelectionAndMoves(square) {
-    removeHighlights();
+function highlightSquare(square) {
+    removeHighlight();
     $(`[data-square='${square}']`).css('background-color', '#b9eaff');
-    const moves = game.moves({ square, verbose: true });
-    moves.forEach(m => {
-        $(`[data-square='${m.to}']`).css('background-color', '#d6f5d6');
-    });
 }
 
-function removeHighlights() {
-    $('div[class^="square-"]').css('background-color', '');
+function removeHighlight() {
+    $('.square-55d63').css('background-color', '');
 }
 
 function onDragStart(source, piece) {
-    if (game.game_over() || isComputerThinking || game.turn() !== userColor) return false;
-    if ((userColor === 'w' && piece.startsWith('b')) || (userColor === 'b' && piece.startsWith('w'))) return false;
+    if (game.game_over() || isComputerThinking || game.turn() !== userColor ||
+        (game.turn() === 'w' && piece.startsWith('b')) ||
+        (game.turn() === 'b' && piece.startsWith('w'))) {
+        return false;
+    }
     return true;
 }
 
 function onDrop(source, target) {
-    removeHighlights();
-
     const move = game.move({
         from: source,
         to: target,
@@ -119,7 +112,7 @@ function onDrop(source, target) {
     addMoveToHistory(move);
     updateStatus();
 
-    if (!game.game_over()) setTimeout(makeComputerThink, 300);
+    if (!game.game_over()) setTimeout(makeComputerThink, 250);
 }
 
 function onSnapEnd() {
@@ -128,6 +121,7 @@ function onSnapEnd() {
 
 function makeComputerThink() {
     if (!stockfish || isComputerThinking) return;
+
     isComputerThinking = true;
     updateStatus();
 
@@ -137,6 +131,12 @@ function makeComputerThink() {
 }
 
 function makeComputerMove(moveStr) {
+    if (!moveStr || moveStr.length < 4) {
+        isComputerThinking = false;
+        updateStatus();
+        return;
+    }
+
     const move = game.move({
         from: moveStr.slice(0, 2),
         to: moveStr.slice(2, 4),
@@ -166,11 +166,16 @@ function playMoveSound(move) {
 }
 
 function addMoveToHistory(move) {
-    const moveText = `${game.history().length % 2 === 0 ? (game.history().length / 2) + '.' : ''} ${move.san}`;
-    const div = $('<div>').text(moveText).addClass('move-item');
+    const moveNumber = Math.floor((game.history().length + 1) / 2);
+    const moveText = `${moveNumber}. ${move.san}`;
+
+    const moveDiv = $('<div>')
+        .text(moveText)
+        .addClass('move-item');
+
     $('#moveHistory div').removeClass('latest-move');
-    div.addClass('latest-move');
-    $('#moveHistory').prepend(div);
+    moveDiv.addClass('latest-move');
+    $('#moveHistory').prepend(moveDiv);
 }
 
 function updateStatus() {
@@ -180,52 +185,71 @@ function updateStatus() {
         status = 'Computer is thinking...';
         $('#gameStatus').removeClass().addClass('alert alert-warning');
     } else if (game.in_checkmate()) {
-        status = `Checkmate! ${game.turn() === 'w' ? 'Black' : 'White'} wins!`;
+        const winner = game.turn() === 'w' ? 'Black' : 'White';
+        status = `Checkmate! ${winner} wins!`;
         $('#gameStatus').removeClass().addClass('alert alert-success');
+        playGameEndSound(true);
     } else if (game.in_draw()) {
-        status = 'Game Drawn.';
+        status = 'Game Over - Draw';
         $('#gameStatus').removeClass().addClass('alert alert-info');
+        playGameEndSound(false);
     } else {
         const turn = game.turn() === 'w' ? 'White' : 'Black';
-        status = `${turn}'s turn${game.in_check() ? ' (in check!)' : ''}`;
-        $('#gameStatus').removeClass().addClass('alert alert-info');
+        status = `${turn} to move`;
+        if (game.in_check()) {
+            status += ` (${turn} is in check!)`;
+            $('#gameStatus').removeClass().addClass('alert alert-warning');
+        } else {
+            $('#gameStatus').removeClass().addClass('alert alert-info');
+        }
     }
 
     $('#gameStatus').text(status);
+}
+
+function playGameEndSound(isCheckmate) {
+    const audio = new Audio();
+    audio.src = isCheckmate
+        ? 'https://lichess1.org/assets/sound/standard/Victory.ogg'
+        : 'https://lichess1.org/assets/sound/standard/Draw.ogg';
+    audio.play().catch(() => {});
 }
 
 function newGame() {
     game.reset();
     board.start();
     $('#moveHistory').empty();
-    selectedSquare = null;
+    tapSquare = null;
     if (userColor === 'b') setTimeout(makeComputerThink, 500);
     updateStatus();
 }
 
 function undoMove() {
     if (isComputerThinking) return;
+
     game.undo();
     game.undo();
     board.position(game.fen());
     $('#moveHistory div:first').remove();
     $('#moveHistory div:first').remove();
-    selectedSquare = null;
+    tapSquare = null;
     updateStatus();
 }
 
 function resignGame() {
     if (isComputerThinking) return;
+
     game.reset();
     board.start();
     $('#moveHistory').empty();
+    tapSquare = null;
     $('#gameStatus')
         .removeClass()
         .addClass('alert alert-info')
         .text('Game resigned. Start a new game!');
-    selectedSquare = null;
 }
 
+// Init everything
 $(document).ready(function () {
     initializeBoard();
     initStockfish();
@@ -241,12 +265,12 @@ $(document).ready(function () {
 
     $('#difficulty').on('change', function () {
         const level = parseInt($(this).val());
-        setDifficulty(level);
-        const difficulty = level <= 5 ? 'Easy' : level <= 10 ? 'Medium' : level <= 15 ? 'Hard' : 'Expert';
+        currentSkillLevel = level;
+        stockfish.postMessage(`setoption name Skill Level value ${level}`);
         $('#gameStatus')
             .removeClass()
             .addClass('alert alert-info')
-            .text(`Difficulty set to ${difficulty} (Level ${level})`);
+            .text(`Difficulty set to Level ${level}`);
     });
 
     updateStatus();
