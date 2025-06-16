@@ -89,28 +89,27 @@ function handleServerMessage(data) {
     }
 }
 
+// Initialize the game board
 function initializeBoard() {
-    console.log("Initializing board...");
+    if (board) {
+        board.destroy();
+    }
 
     const config = {
-        draggable: false, // DRAG AND DROP DISABLED
+        draggable: true,
         position: 'start',
+        orientation: playerColor,
         pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
-        showNotation: true
+        onDragStart: onDragStart,
+        onDrop: onDrop,
+        onSnapEnd: onSnapEnd
     };
-
+    
     board = Chessboard('board', config);
-
     $(window).resize(() => {
         board.resize();
-        // Optional: Re-bind handlers on resize. Could be overkill, but ensures robustness.
-        // bindSquareClickHandlers();
     });
-   
-
-    // Initial binding of click handlers after board setup
-    // Use a small timeout to ensure DOM elements are fully in place
-    setTimeout(bindSquareClickHandlers, 500);
+    updateStatus();
 }
 
 
