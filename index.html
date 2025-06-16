@@ -15,37 +15,84 @@
       height: 40px;
     }
 
-   
-    /* Toggle button color to black */
-  .navbar-toggler {
-    border-color: black;
-  }
-
-  .navbar-toggler-icon {
-    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3e%3cpath stroke='black' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
-  }
-
-  /* Custom left slide-in collapse for navbar */
-  @media (max-width: 991.98px) {
-    .navbar-collapse {
-      position: fixed;
-      top: 0;
-      left: -100%;
-      height: 100vh;
-      width: 250px;
-      background-color: white;
-      transition: left 0.3s ease-in-out;
-      padding-top: 70px;
-      z-index: 999;
+    .navbar-toggler {
+      border-color: black;
+      padding: 6px 10px;
+      border-radius: 4px;
     }
 
-    .navbar-collapse.show {
-      left: 0;
+    .navbar-toggler-icon {
+      background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3e%3cpath stroke='black' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
     }
 
-    .navbar-nav {
-      flex-direction: column;
-      padding-left: 1rem;
+    @media (max-width: 991.98px) {
+      .navbar-collapse {
+        position: fixed;
+        top: 0;
+        left: -100%;
+        height: 100vh;
+        width: 260px;
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(15px);
+        transition: left 0.4s ease;
+        padding: 80px 20px 20px;
+        box-shadow: 6px 0 25px rgba(0, 0, 0, 0.1);
+        z-index: 1050;
+        border-right: 1px solid rgba(0, 0, 0, 0.05);
+      }
+
+      .navbar-collapse.show {
+        left: 0;
+      }
+
+      .navbar-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+
+      .navbar-nav .nav-link {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #023047 !important;
+        padding: 10px 0;
+        transition: all 0.3s ease-in-out;
+        border-bottom: 1px solid transparent;
+      }
+
+      .navbar-nav .nav-link:hover {
+        color: #0077b6 !important;
+        border-bottom: 1px solid #0077b6;
+        transform: translateX(5px);
+      }
+
+      .sidebar-close-btn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        font-size: 1.6rem;
+        background: none;
+        border: none;
+        color: #333;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 1060;
+      }
+
+      .sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.4s ease;
+        z-index: 1040;
+      }
+
+      .sidebar-overlay.active {
+        opacity: 1;
+        visibility: visible;
+      }
     }
   </style>
 </head>
@@ -74,6 +121,7 @@
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
+        <button class="sidebar-close-btn" onclick="closeSidebar()">×</button>
         <ul class="navbar-nav ms-auto">
           <li class="nav-item"><a class="nav-link active" href="#">Home</a></li>
           <li class="nav-item"><a class="nav-link" href="#practice">Practice</a></li>
@@ -82,6 +130,9 @@
       </div>
     </div>
   </nav>
+
+  <!-- Sidebar Overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
   <!-- Hero Section -->
   <header class="hero-section">
@@ -95,7 +146,7 @@
     </div>
   </header>
 
-  <!-- Interactive Board Section -->
+  <!-- Practice Section -->
   <section id="practice" class="py-5">
     <div class="container">
       <h2 class="text-center mb-4">Practice with Computer</h2>
@@ -109,7 +160,6 @@
           </div>
         </div>
 
-        <!-- Controls Column -->
         <div class="col-md-4">
           <div class="card">
             <div class="card-body">
@@ -126,7 +176,7 @@
                     <label class="form-check-label" for="playAsBlack">Black</label>
                   </div>
                 </div>
-                
+
                 <div class="mb-3">
                   <label for="difficulty" class="form-label">Difficulty:</label>
                   <select class="form-select" id="difficulty">
@@ -142,7 +192,7 @@
                   <button id="undoBtn" class="btn btn-secondary">Undo Move</button>
                   <button id="resignBtn" class="btn btn-danger">Resign</button>
                 </div>
-                
+
                 <div class="mt-4">
                   <h6>Move History:</h6>
                   <div id="moveHistory" class="move-history"></div>
@@ -212,7 +262,23 @@
       const loader = document.getElementById('loading-screen');
       setTimeout(() => {
         loader.classList.add('hide-loader');
-      }, 5000); // 5 seconds
+      }, 5000);
+    });
+
+    const navbarCollapse = document.querySelector('.navbar-collapse');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+    function closeSidebar() {
+      navbarCollapse.classList.remove('show');
+      sidebarOverlay.classList.remove('active');
+    }
+
+    document.querySelector('.navbar-toggler').addEventListener('click', () => {
+      setTimeout(() => {
+        if (navbarCollapse.classList.contains('show')) {
+          sidebarOverlay.classList.add('active');
+        }
+      }, 10);
     });
   </script>
 
