@@ -258,21 +258,31 @@ body {
     background: rgba(255, 255, 255, 0.65);
     backdrop-filter: blur(10px);
     box-shadow: 0 15px 35px rgba(0, 119, 182, 0.15);
-    animation: fadeZoom 1s ease-in-out;
-    transition: transform 0.3s ease-in-out;
+    animation: fadeZoom 0.6s ease-in-out;
+    transition: none; /* Removed scale transition to avoid layout issues */
 }
 
+/* Removed board zoom on hover */
 .board-container:hover #board {
-    transform: scale(1.02);
+    transform: none;
 }
 
+/* Animate piece smoothly, but not on hover */
 .piece-417db {
-    transition: transform 0.2s ease-in-out;
+    transition: transform 0.15s ease-in-out;
 }
 
+/* Reduce bounce effect on active press */
 .piece-417db:active {
-    transform: scale(1.1);
+    transform: scale(1.05); /* Less aggressive */
 }
+
+/* Optional: highlight selected square for tap-to-move */
+.square-55d63.highlight-tap {
+    background-color: #b9eaff !important;
+    box-shadow: inset 0 0 0 2px #00aaff;
+}
+
 
 .card {
     background: rgba(255, 255, 255, 0.6);
