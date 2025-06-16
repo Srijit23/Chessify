@@ -11,30 +11,39 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <style>
-/* Chessboard.js related styles */
+/* Chessboard.js related base styles */
 #board {
     touch-action: none; /* Crucial for touch devices */
     -ms-touch-action: none;
 }
+
+/* Sophisticated Highlighting for selected piece and legal moves */
 .highlight-selected {
-    background-color: #f7e06a !important; /* Yellow for selected piece */
-    box-shadow: inset 0 0 1px 4px #b8b17b;
+    /* A soft, light blue for the selected piece, visually distinct but not jarring */
+    background-color: #DDEEFF !important; /* Very light, clean blue */
+    box-shadow: inset 0 0 1px 4px #81A1C1; /* A muted blue for the inner shadow */
 }
+
 .highlight-move {
-    background-color: #6aed7a !important; /* Green for legal moves */
+    /* A subtle, semi-transparent overlay for all legal move squares (captures or empty) */
+    /* This allows the underlying board square color to show through, making it look integrated */
+    background-color: rgba(127, 255, 212, 0.4) !important; /* Aquamarine with 40% opacity - a clean, subtle green-blue */
 }
+
 .highlight-move.square-empty::after {
+    /* A clear, medium-sized dot for empty squares where a move is possible */
     content: "";
     display: block;
-    width: 30%; /* Corrected: was 'wi#board {' */
+    width: 30%; /* Corrected from 'wi#board {' */
     height: 30%;
     border-radius: 50%;
-    background-color: rgba(0, 0, 0, 0.2);
+    background-color: rgba(0, 0, 0, 0.4); /* Semi-transparent darker dot for better visibility */
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
 }
+
 /* Basic chat styling */
 .chat-box {
     height: 150px;
@@ -54,7 +63,8 @@
 .chat-message strong {
     color: #0056b3;
 }
-/* Chess Piece Theme */
+
+/* Chess Piece Theme (These should be from chessboard.js or your style.css, but I've included them for completeness) */
 .white-1e1d7 {
     background-color: #f0d9b5;
 }
@@ -69,6 +79,8 @@
     border-radius: 15px;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
+
+/* Navbar styling */
 .navbar-toggler {
     border-color: black;
     padding: 6px 10px;
@@ -101,6 +113,8 @@
     color: #0077b6 !important;
     transform: translateY(-1px);
 }
+
+/* Media queries for responsive navbar (sidebar on smaller screens) */
 @media (max-width: 991.98px) {
     .navbar-collapse {
         position: fixed;
