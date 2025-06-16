@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>SrijitChess - Learn and Master Chess</title>
+  <title>WELLCOME - Learn and Master Chess</title>
 
   <!-- Styles -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
@@ -11,90 +11,80 @@
   <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="style.css" />
   <style>
-    .navbar-brand .brand-logo {
-      height: 40px;
+  .navbar-brand .brand-logo {
+    height: 40px;
+  }
+
+  .navbar-toggler {
+    border-color: black;
+    padding: 6px 10px;
+    border-radius: 4px;
+  }
+
+  .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3e%3cpath stroke='black' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+  }
+
+  @media (max-width: 991.98px) {
+    .navbar-collapse {
+      position: fixed;
+      top: 0;
+      left: -100%;
+      height: 100vh;
+      width: 260px;
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(15px);
+      transition: left 0.4s ease;
+      padding: 80px 20px 20px;
+      box-shadow: 6px 0 25px rgba(0, 0, 0, 0.1);
+      z-index: 1050;
+      border-right: 1px solid rgba(0, 0, 0, 0.05);
     }
 
-    .navbar-toggler {
-      border-color: black;
-      padding: 6px 10px;
-      border-radius: 4px;
+    .navbar-collapse.show {
+      left: 0;
     }
 
-    .navbar-toggler-icon {
-      background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3e%3cpath stroke='black' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+    .navbar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
     }
 
-    @media (max-width: 991.98px) {
-      .navbar-collapse {
-        position: fixed;
-        top: 0;
-        left: -100%;
-        height: 100vh;
-        width: 260px;
-        background: rgba(255, 255, 255, 0.75);
-        backdrop-filter: blur(15px);
-        transition: left 0.4s ease;
-        padding: 80px 20px 20px;
-        box-shadow: 6px 0 25px rgba(0, 0, 0, 0.1);
-        z-index: 1050;
-        border-right: 1px solid rgba(0, 0, 0, 0.05);
-      }
-
-      .navbar-collapse.show {
-        left: 0;
-      }
-
-      .navbar-nav {
-        display: flex;
-        flex-direction: column;
-        gap: 18px;
-      }
-
-      .navbar-nav .nav-link {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #023047 !important;
-        padding: 10px 0;
-        transition: all 0.3s ease-in-out;
-        border-bottom: 1px solid transparent;
-      }
-
-      .navbar-nav .nav-link:hover {
-        color: #0077b6 !important;
-        border-bottom: 1px solid #0077b6;
-        transform: translateX(5px);
-      }
-
-      .sidebar-close-btn {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        font-size: 1.6rem;
-        background: none;
-        border: none;
-        color: #333;
-        font-weight: bold;
-        cursor: pointer;
-        z-index: 1060;
-      }
-
-      .sidebar-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.4);
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity 0.4s ease;
-        z-index: 1040;
-      }
-
-      .sidebar-overlay.active {
-        opacity: 1;
-        visibility: visible;
-      }
+    .navbar-nav .nav-link {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #023047 !important;
+      padding: 10px 0;
+      transition: all 0.3s ease-in-out;
+      border-bottom: none !important; /* Fixes horizontal line */
     }
-  </style>
+
+    .navbar-nav .nav-link:hover {
+      color: #0077b6 !important;
+      transform: translateX(5px);
+    }
+
+    .sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.4s ease;
+      z-index: 1040;
+    }
+
+    .sidebar-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+</style>
+
 </head>
 <body>
 
@@ -121,7 +111,7 @@
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
-        <button class="sidebar-close-btn" onclick="closeSidebar()">×</button>
+        
         <ul class="navbar-nav ms-auto">
           <li class="nav-item"><a class="nav-link active" href="#">Home</a></li>
           <li class="nav-item"><a class="nav-link" href="#practice">Practice</a></li>
@@ -247,7 +237,7 @@
   <!-- Footer -->
   <footer class="bg-dark text-light py-4">
     <div class="container text-center">
-      <p>&copy; 2025 SrijitChess. All rights reserved.</p>
+      <p>&copy; 2025 Airsland. All rights reserved.</p>
     </div>
   </footer>
 
