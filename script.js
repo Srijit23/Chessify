@@ -26,12 +26,10 @@ function initializeBoard() {
     console.log("Initializing board...");
 
     const config = {
-        draggable: true, // Keep drag and drop enabled
+        draggable: false, // <--- IMPORTANT CHANGE: DRAG AND DROP DISABLED
         position: 'start',
         pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
-        onDragStart: onDragStart,
-        onDrop: onDrop,
-        onSnapEnd: onSnapEnd,
+        // onDragStart, onDrop, onSnapEnd are removed as draggable is false
         showNotation: true
     };
 
@@ -149,57 +147,8 @@ function deselectPiece() {
     removeHighlights();
 }
 
-function onDragStart(source, piece) {
-    // If a piece is selected via tap, prevent dragging of other pieces
-    // If the selected piece (tapSquare) is the one being dragged, allow it.
-    if (tapSquare !== null && tapSquare !== source) {
-        console.log("Blocking drag: A piece is already selected via tap.");
-        return false;
-    }
-
-    // Standard drag start conditions
-    if (game.game_over() || isComputerThinking || game.turn() !== userColor ||
-        (game.turn() === 'w' && piece.startsWith('b')) ||
-        (game.turn() === 'b' && piece.startsWith('w'))) {
-        console.log("Blocking drag: Game over, computer thinking, or not your turn/piece.");
-        return false;
-    }
-
-    // Clear any tap selection highlights when a drag operation begins
-    deselectPiece();
-    return true;
-}
-
-function onDrop(source, target) {
-    // Attempt to make the move
-    const move = game.move({
-        from: source,
-        to: target,
-        promotion: 'q'
-    });
-
-    // If the move is illegal, snap the piece back
-    if (move === null) {
-        console.log("Illegal drag move. Snapping back.");
-        return 'snapback';
-    }
-
-    // If valid, update the board, play sound, add to history, and update status
-    board.position(game.fen());
-    playMoveSound(move);
-    addMoveToHistory(move);
-    updateStatus();
-    console.log("Drag move made:", move);
-
-    // If the game isn't over, let the computer think
-    if (!game.game_over()) setTimeout(makeComputerThink, 250);
-}
-
-function onSnapEnd() {
-    // This is called after the piece has been dropped and the board's position is updated.
-    // Ensure the board's visual state matches the game's internal FEN.
-    board.position(game.fen());
-}
+// Removed onDragStart, onDrop, onSnapEnd functions completely
+// since draggable is set to false in the config.
 
 function makeComputerThink() {
     if (!stockfish || isComputerThinking) {
