@@ -5,12 +5,13 @@ let playerColor = 'white'; // 'white' or 'black'
 let currentRoom = '';
 let isMyTurn = false;
 let isConnected = false;
-let tapSquare = null; // Stores the square of the currently selected piece
 
 // Connect to WebSocket server
 function connectToServer() {
     try {
+        // Always connect to your deployed WebSocket backend
         const wsUrl = 'wss://chessify1-server.onrender.com';
+
         ws = new WebSocket(wsUrl);
 
         ws.onopen = () => {
@@ -77,12 +78,12 @@ function handleServerMessage(data) {
             case 'error':
                 showError(data.message);
                 break;
-            case 'draw_offer':
+            case 'draw_offer': // Added draw offer handling
                 handleDrawOffer(data);
-                break; // New case for draw offer
-            case 'draw_response':
+                break;
+            case 'draw_response': // Added draw response handling
                 handleDrawResponse(data);
-                break; // New case for draw response
+                break;
             default:
                 console.log('Unknown message type:', data.type);
         }
@@ -92,144 +93,29 @@ function handleServerMessage(data) {
     }
 }
 
-// NEW: Click handling logic for squares
-function handleSquareClick(event) {
-    const clickedSquare = this.getAttribute('data-square');
-    console.log("Clicked square:", clickedSquare);
-
-    if (!isMyTurn || game.game_over()) {
-        console.log("Interaction blocked: Not your turn or game over.");
-        return;
-    }
-
-    // Scenario 1: No piece is currently selected for tap-to-move
-    if (tapSquare === null) {
-        const piece = game.get(clickedSquare);
-        // Only allow selecting a piece if it's the user's turn and their color
-        if (piece && piece.color === playerColor.charAt(0) && game.turn() === playerColor.charAt(0)) {
-            tapSquare = clickedSquare;
-            highlightLegalMoves(tapSquare); // Highlight the selected piece AND its legal moves
-            console.log("Piece selected:", tapSquare);
-        } else {
-            console.log("Cannot select: no piece, not your piece, or not your turn.");
-            removeHighlights(); // Ensure no lingering highlights if invalid tap
-        }
-    } else {
-        // Scenario 2: A piece is already selected (tapSquare is not null)
-        // Check if the user clicked the same square (to deselect)
-        if (clickedSquare === tapSquare) {
-            deselectPiece();
-            console.log("Piece deselected.");
-        } else {
-            // Attempt to move the selected piece to the new square
-            const moveAttempt = {
-                from: tapSquare,
-                to: clickedSquare,
-                promotion: 'q' // Default to queen promotion
-            };
-
-            const moveResult = game.move(moveAttempt);
-
-            if (moveResult === null) {
-                // Invalid move. Check if the clicked square contains a piece of the user's color
-                const newPiece = game.get(clickedSquare);
-                if (newPiece && newPiece.color === playerColor.charAt(0) && game.turn() === playerColor.charAt(0)) {
-                    // User clicked on another of their own pieces, so select the new one
-                    deselectPiece(); // Deselect old piece
-                    tapSquare = clickedSquare; // Select new piece
-                    highlightLegalMoves(tapSquare); // Highlight new piece and its moves
-                    console.log("Invalid move, selecting new piece:", clickedSquare);
-                } else {
-                    // User clicked on an empty square where no valid move was possible, or an opponent's piece.
-                    // Deselect the previously selected piece.
-                    deselectPiece();
-                    console.log("Invalid move, deselecting piece.");
-                }
-            } else {
-                // Valid move. Send it to the server.
-                isMyTurn = false; // It's no longer your turn
-                ws.send(JSON.stringify({
-                    type: 'make_move',
-                    move: moveResult, // Send the verbose move object
-                    fen: game.fen(),
-                    roomId: currentRoom
-                }));
-
-                board.position(game.fen()); // Update the visual board immediately
-                playMoveSound(moveResult);
-                addMoveToHistory(moveResult);
-                updateStatus();
-                deselectPiece(); // Deselect after a successful move
-                console.log("Move made and sent to server:", moveResult);
-            }
-        }
-    }
-}
-
-// NEW: Function to bind/re-bind square click handlers
-function bindSquareClickHandlers() {
-    const squares = document.querySelectorAll('#board .square-55d63');
-    squares.forEach(square => {
-        square.removeEventListener('click', handleSquareClick); // Remove existing
-        square.addEventListener('click', handleSquareClick); // Add new
-    });
-    console.log("Square click handlers bound.");
-}
-
-// NEW: Highlighting functions
-function highlightLegalMoves(sourceSquare) {
-    removeHighlights(); // Always start by removing previous highlights
-
-    // Add highlight for the selected piece itself
-    $(`[data-square='${sourceSquare}']`).addClass('highlight-selected');
-
-    // Get all legal moves for the piece on the sourceSquare
-    const legalMoves = game.moves({
-        square: sourceSquare,
-        verbose: true // Get verbose objects to easily access 'to' square
-    });
-
-    // Highlight each target square for legal moves
-    for (let i = 0; i < legalMoves.length; i++) {
-        $(`[data-square='${legalMoves[i].to}']`).addClass('highlight-move');
-    }
-}
-
-function removeHighlights() {
-    $('.square-55d63').removeClass('highlight-selected highlight-move');
-}
-
-function deselectPiece() {
-    tapSquare = null;
-    removeHighlights();
-}
-
 // Initialize the game board
-function initializeBoard() {
-    console.log("Initializing board...");
+function initializeBoard(orientation) { // Added orientation parameter
     if (board) {
         board.destroy(); // Destroy existing board instance to reset it
     }
 
     const config = {
-        draggable: false, // IMPORTANT: DRAG AND DROP DISABLED
+        draggable: true, // KEEP DRAG AND DROP ENABLED for multiplayer
         position: 'start',
-        orientation: playerColor,
+        orientation: orientation, // Use the passed orientation
         pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
-        // onDragStart, onDrop, onSnapEnd are removed as draggable is false
-        showNotation: true
+        onDragStart: onDragStart,
+        onDrop: onDrop,
+        onSnapEnd: onSnapEnd,
+        showNotation: true // Keep notation visible
     };
 
     board = Chessboard('board', config);
     $(window).resize(() => {
         board.resize();
-        bindSquareClickHandlers(); // Re-bind on resize
     });
     updateStatus();
-
-    // Initial binding of click handlers after board setup
-    // Use a small timeout to ensure DOM elements are fully in place
-    setTimeout(bindSquareClickHandlers, 500);
+    console.log("Board initialized with orientation:", orientation);
 }
 
 // Handle room creation
@@ -241,7 +127,7 @@ function handleRoomCreated(data) {
     $('#roomControls').hide();
     $('#gameArea').show();
     showStatus('Waiting for opponent to join...', 'info');
-    initializeBoard(); // Initialize the board for the creator
+    initializeBoard(playerColor); // Initialize board with player's color
 }
 
 // Handle game start
@@ -249,17 +135,17 @@ function handleGameStart(data) {
     console.log('Game starting:', data);
     currentRoom = data.roomId;
     playerColor = data.color; // 'white' or 'black'
-    isMyTurn = (playerColor === 'white' && game.turn() === 'w') || (playerColor === 'black' && game.turn() === 'b');
+    game = new Chess(); // Reset the game state
+    
+    // Initialize the board with the correct orientation before setting turn
+    initializeBoard(playerColor); // This ensures 'board' object is created
 
+    isMyTurn = (playerColor === 'white' && game.turn() === 'w') || (playerColor === 'black' && game.turn() === 'b');
+    
     $('#currentRoom').text(currentRoom);
     $('#playerColor').text(playerColor);
     $('#roomControls').hide();
     $('#gameArea').show();
-
-    // Reset the game state
-    game = new Chess();
-    board.orientation(playerColor); // Ensure correct orientation for player
-    initializeBoard(); // Re-initialize the board to ensure correct orientation and clear state
 
     showStatus(isMyTurn ? 'Your turn' : "Opponent's turn", 'info');
     enableGameControls();
@@ -274,24 +160,114 @@ function handleMoveMade(data) {
     playMoveSound(data.move);
     addMoveToHistory(data.move);
     updateStatus();
-    deselectPiece(); // Ensure any selected piece is deselected after opponent's move
 }
 
 // Handle game over
 function handleGameOver(data) {
     showStatus(data.result, 'info');
     disableGameControls();
-    deselectPiece(); // Deselect on game end
 }
 
 // Handle player disconnection
 function handlePlayerDisconnect(data) {
     showError(`${data.color} player has disconnected`);
     disableGameControls();
-    deselectPiece(); // Deselect on disconnection
 }
 
-// NEW: Handle Draw Offer
+// Check if it's the player's turn
+function onDragStart(source, piece) {
+    if (game.game_over() || !isMyTurn ||
+        (playerColor === 'white' && piece.search(/^b/) !== -1) ||
+        (playerColor === 'black' && piece.search(/^w/) !== -1)) {
+        return false;
+    }
+    return true;
+}
+
+// Handle piece drops
+function onDrop(source, target) {
+    const move = game.move({
+        from: source,
+        to: target,
+        promotion: 'q'
+    });
+
+    if (move === null) return 'snapback';
+
+    isMyTurn = false;
+    ws.send(JSON.stringify({
+        type: 'make_move',
+        move: move, // Send the verbose move object
+        fen: game.fen(),
+        roomId: currentRoom
+    }));
+
+    addMoveToHistory(move);
+    updateStatus();
+    return true; // Indicate that the move was valid for chessboard.js
+}
+
+// Update piece positions after snap animation
+function onSnapEnd() {
+    board.position(game.fen());
+}
+
+function playMoveSound(move) {
+    const audio = new Audio();
+    if (move.captured) {
+        audio.src = 'https://lichess1.org/assets/sound/standard/Capture.ogg';
+    } else if (move.san.includes('+')) {
+        audio.src = 'https://lichess1.org/assets/sound/standard/Check.ogg';
+    } else {
+        audio.src = 'https://lichess1.org/assets/sound/standard/Move.ogg';
+    }
+    audio.play().catch(() => { /* console.error("Audio playback failed:", error); */ });
+}
+
+// Add move to the move history
+function addMoveToHistory(move) {
+    const moveText = `${move.from}-${move.to}`; // Simplified for now, consider using move.san
+    const $moveHistory = $('#moveHistory');
+    const $moveItem = $('<div>').addClass('move-item').text(moveText);
+
+    $('.move-item').removeClass('latest-move');
+    $moveItem.addClass('latest-move');
+    $moveHistory.append($moveItem);
+    $moveHistory.scrollTop($moveHistory[0].scrollHeight);
+}
+
+// Update game status
+function updateStatus() {
+    let status = '';
+
+    if (game.in_checkmate()) {
+        status = 'Game over, ' + (game.turn() === 'w' ? 'black' : 'white') + ' wins by checkmate!';
+        handleGameEnd(status);
+    } else if (game.in_draw()) {
+        status = 'Game over, drawn position!';
+        handleGameEnd(status);
+    } else {
+        status = (isMyTurn ? 'Your turn' : "Opponent's turn');
+        if (game.in_check()) {
+            status += ', ' + (game.turn() === 'w' ? 'White' : 'Black') + ' is in check';
+        }
+    }
+
+    showStatus(status, 'info');
+    $('#gameStatusText').text(status); // Ensure this updates the text element
+}
+
+// Handle game end
+function handleGameEnd(result) {
+    ws.send(JSON.stringify({
+        type: 'game_over',
+        result: result,
+        roomId: currentRoom // Send roomId for the server to handle
+    }));
+    disableGameControls();
+}
+
+// NEW: Handle Draw Offer (client-side confirmation)
 function handleDrawOffer(data) {
     if (data.fromColor !== playerColor) { // If offer is from opponent
         if (confirm(`Opponent offers a draw. Do you accept?`)) {
@@ -329,65 +305,6 @@ function handleDrawResponse(data) {
     }
 }
 
-// Removed onDragStart, onDrop, onSnapEnd functions
-// as draggable is set to false in the config.
-
-function playMoveSound(move) {
-    const audio = new Audio();
-    if (move.captured) {
-        audio.src = 'https://lichess1.org/assets/sound/standard/Capture.ogg';
-    } else if (move.san.includes('+')) {
-        audio.src = 'https://lichess1.org/assets/sound/standard/Check.ogg';
-    } else {
-        audio.src = 'https://lichess1.org/assets/sound/standard/Move.ogg';
-    }
-    audio.play().catch(() => { /* console.error("Audio playback failed:", error); */ });
-}
-
-// Add move to the move history
-function addMoveToHistory(move) {
-    const moveText = `${move.from}-${move.to}`; // Simplified for now, consider using move.san
-    const $moveHistory = $('#moveHistory');
-    const $moveItem = $('<div>').addClass('move-item').text(moveText);
-
-    $('.move-item').removeClass('latest-move');
-    $moveItem.addClass('latest-move');
-    $moveHistory.append($moveItem);
-    $moveHistory.scrollTop($moveHistory[0].scrollHeight);
-}
-
-// Update game status
-function updateStatus() {
-    let status = '';
-
-    if (game.in_checkmate()) {
-        status = 'Game over, ' + (game.turn() === 'w' ? 'black' : 'white') + ' wins by checkmate!';
-        handleGameEnd(status);
-    } else if (game.in_draw()) {
-        status = 'Game over, drawn position!';
-        handleGameEnd(status);
-    } else {
-        status = (isMyTurn ? 'Your turn' : "Opponent's turn");
-        if (game.in_check()) {
-            status += ', ' + (game.turn() === 'w' ? 'White' : 'Black') + ' is in check';
-        }
-    }
-
-    showStatus(status, 'info');
-    $('#gameStatusText').text(status); // Ensure this updates the text element
-}
-
-// Handle game end
-function handleGameEnd(result) {
-    ws.send(JSON.stringify({
-        type: 'game_over',
-        result: result,
-        roomId: currentRoom // Send roomId for the server to handle
-    }));
-    disableGameControls();
-    deselectPiece(); // Deselect on game end
-}
-
 // Enable game controls
 function enableGameControls() {
     $('#resignBtn, #offerDrawBtn').prop('disabled', false);
@@ -400,12 +317,12 @@ function disableGameControls() {
 
 // Event listeners
 $(document).ready(() => {
-    // Connect to server when page loads (moved to top-level call)
+    // Connect to server when page loads
     connectToServer();
 
-    // Initial chessboard setup (will be re-initialized by handleGameStart/handleRoomCreated)
-    // Removed direct chessboard initialization here as it's handled by initializeBoard()
-    // which is called when a room is created/game starts.
+    // Initial chessboard setup when the page loads, using a default 'white' orientation
+    // This ensures 'board' is initialized and ready for first interactions.
+    initializeBoard('white'); 
 
     // Create room button click handler
     $('#createRoom').click(() => {
