@@ -5,8 +5,6 @@ let userColor = 'w';
 let isComputerThinking = false;
 let currentSkillLevel = 10;
 let tapSquare = null; // This will store the square of the currently selected piece
-
-// New: Flag to ensure Stockfish is ready before sending commands
 let stockfishIsReady = false;
 
 function initStockfish() {
@@ -14,12 +12,11 @@ function initStockfish() {
 
     stockfish.onmessage = function (event) {
         if (typeof event.data === 'string') {
-            console.log("Stockfish Output:", event.data); // Log all Stockfish output for debugging
+            console.log("Stockfish Output:", event.data);
 
             if (event.data === 'readyok') {
                 stockfishIsReady = true;
                 console.log("Stockfish is ready!");
-                // Set skill level ONLY when ready
                 stockfish.postMessage(`setoption name Skill Level value ${currentSkillLevel}`);
             } else if (event.data.includes('bestmove')) {
                 const tokens = event.data.split(' ');
@@ -28,7 +25,7 @@ function initStockfish() {
                     makeComputerMove(move);
                 } else {
                     console.error("Stockfish returned 'none' or invalid bestmove:", event.data);
-                    isComputerThinking = false; // Release thinking state if no valid move
+                    isComputerThinking = false;
                     updateStatus();
                 }
             }
@@ -36,8 +33,74 @@ function initStockfish() {
     };
 
     stockfish.postMessage('uci');
-    stockfish.postMessage('isready'); // Request readiness
+    stockfish.postMessage('isready');
 }
+
+// NEW: Encapsulate click binding logic
+function bindSquareClickHandlers() {
+    // Detach any existing handlers first to prevent multiple bindings or ghost listeners
+    $('#board .square-55d63').off('click');
+
+    // Attach the click handler
+    $('#board .square-55d63').on('click', function () {
+        const clickedSquare = $(this).attr('data-square');
+        console.log("Clicked square:", clickedSquare);
+
+        if (isComputerThinking || game.game_over()) {
+            console.log("Interaction blocked: computer thinking or game over.");
+            return;
+        }
+
+        if (tapSquare === null) {
+            const piece = game.get(clickedSquare);
+            if (piece && piece.color === userColor && game.turn() === userColor) {
+                tapSquare = clickedSquare;
+                highlightLegalMoves(tapSquare);
+                console.log("Piece selected:", tapSquare);
+            } else {
+                console.log("Cannot select: no piece, not your piece, or not your turn.");
+                removeHighlights();
+            }
+        } else {
+            if (clickedSquare === tapSquare) {
+                deselectPiece();
+                console.log("Piece deselected.");
+            } else {
+                const moveAttempt = {
+                    from: tapSquare,
+                    to: clickedSquare,
+                    promotion: 'q'
+                };
+
+                const moveResult = game.move(moveAttempt);
+
+                if (moveResult === null) {
+                    const newPiece = game.get(clickedSquare);
+                    if (newPiece && newPiece.color === userColor && game.turn() === userColor) {
+                        deselectPiece();
+                        tapSquare = clickedSquare;
+                        highlightLegalMoves(tapSquare);
+                        console.log("Invalid move, selecting new piece:", clickedSquare);
+                    } else {
+                        deselectPiece();
+                        console.log("Invalid move, deselecting piece.");
+                    }
+                } else {
+                    board.position(game.fen());
+                    playMoveSound(moveResult);
+                    addMoveToHistory(moveResult);
+                    updateStatus();
+                    deselectPiece();
+                    console.log("Move made:", moveResult);
+
+                    if (!game.game_over()) setTimeout(makeComputerThink, 250);
+                }
+            }
+        }
+    });
+    console.log("Square click handlers bound.");
+}
+
 
 function initializeBoard() {
     console.log("Initializing board...");
@@ -49,77 +112,19 @@ function initializeBoard() {
         showNotation: true
     };
 
-     board = Chessboard('board', config);
+    board = Chessboard('board', config);
 
     $(window).resize(() => {
         board.resize();
-        // Optional: Re-attach click handler on resize if it seems to help.
-        // This is usually not necessary but can fix some rare quirks.
-        // $('#board .square-55d63').off('click').on('click', handleSquareClick);
-        // Note: You'd need to put the square click logic into a named function.
+        // Optional: Re-bind handlers on resize. Could be overkill, but ensures robustness.
+        // bindSquareClickHandlers();
     });
 
-    // Main click handler attachment
-    setTimeout(() => {
-        // Detach any existing handlers first to prevent multiple bindings
-        $('#board .square-55d63').off('click').on('click', function () {
-            const clickedSquare = $(this).attr('data-square');
-            console.log("Clicked square:", clickedSquare);
-
-            if (isComputerThinking || game.game_over()) {
-                console.log("Interaction blocked: computer thinking or game over.");
-                return;
-            }
-
-            if (tapSquare === null) {
-                const piece = game.get(clickedSquare);
-                if (piece && piece.color === userColor && game.turn() === userColor) {
-                    tapSquare = clickedSquare;
-                    highlightLegalMoves(tapSquare);
-                    console.log("Piece selected:", tapSquare);
-                } else {
-                    console.log("Cannot select: no piece, not your piece, or not your turn.");
-                    removeHighlights();
-                }
-            } else {
-                if (clickedSquare === tapSquare) {
-                    deselectPiece();
-                    console.log("Piece deselected.");
-                } else {
-                    const moveAttempt = {
-                        from: tapSquare,
-                        to: clickedSquare,
-                        promotion: 'q'
-                    };
-
-                    const moveResult = game.move(moveAttempt);
-
-                    if (moveResult === null) {
-                        const newPiece = game.get(clickedSquare);
-                        if (newPiece && newPiece.color === userColor && game.turn() === userColor) {
-                            deselectPiece();
-                            tapSquare = clickedSquare;
-                            highlightLegalMoves(tapSquare);
-                            console.log("Invalid move, selecting new piece:", clickedSquare);
-                        } else {
-                            deselectPiece();
-                            console.log("Invalid move, deselecting piece.");
-                        }
-                    } else {
-                        board.position(game.fen());
-                        playMoveSound(moveResult);
-                        addMoveToHistory(moveResult);
-                        updateStatus();
-                        deselectPiece();
-                        console.log("Move made:", moveResult);
-
-                        if (!game.game_over()) setTimeout(makeComputerThink, 250);
-                    }
-                }
-            }
-        });
-    }, 500);
+    // Initial binding of click handlers after board setup
+    // Use a small timeout to ensure DOM elements are fully in place
+    setTimeout(bindSquareClickHandlers, 500);
 }
+
 function highlightLegalMoves(sourceSquare) {
     removeHighlights();
     $(`[data-square='${sourceSquare}']`).addClass('highlight-selected');
@@ -147,9 +152,9 @@ function makeComputerThink() {
         return;
     }
 
-    if (!stockfishIsReady) { // Ensure Stockfish is ready before sending commands
+    if (!stockfishIsReady) {
         console.warn("Stockfish not yet ready. Waiting...");
-        setTimeout(makeComputerThink, 100); // Try again shortly
+        setTimeout(makeComputerThink, 100);
         return;
     }
 
@@ -183,13 +188,8 @@ function makeComputerMove(moveStr) {
         console.log("Computer made move:", moveStr);
     } else {
         console.error("Stockfish suggested an illegal move, or a promotion character was missing/invalid:", moveStr, game.fen());
-        // Crucial: Handle this error gracefully. If Stockfish gives an illegal move,
-        // it means its internal state is off or the FEN sent was incorrect.
-        // For now, we'll just log and let the game continue in a potentially broken state.
-        // A more robust solution might involve:
-        // - Resetting Stockfish
-        // - Re-syncing Stockfish's FEN
-        // - Alerting the user to a critical error
+        // For robustness, you might want to consider resetting Stockfish's state here
+        // if this happens repeatedly.
     }
 
     isComputerThinking = false;
@@ -265,6 +265,8 @@ function newGame() {
     if (userColor === 'b') setTimeout(makeComputerThink, 500);
     updateStatus();
     console.log("New game started.");
+    // After a new game, ensure click handlers are robustly re-bound
+    setTimeout(bindSquareClickHandlers, 100);
 }
 
 function undoMove() {
@@ -273,22 +275,23 @@ function undoMove() {
         return;
     }
 
-    // Try to undo two moves (player's and computer's)
     const lastPlayerMove = game.undo();
     let lastComputerMove = null;
-    if (lastPlayerMove) { // Only undo computer move if player move existed
+    if (lastPlayerMove) {
         lastComputerMove = game.undo();
     }
 
     if (lastPlayerMove || lastComputerMove) {
         board.position(game.fen());
-        $('#moveHistory div:first').remove(); // Remove player's move
+        $('#moveHistory div:first').remove();
         if (lastComputerMove) {
-            $('#moveHistory div:first').remove(); // Remove computer's move
+            $('#moveHistory div:first').remove();
         }
         deselectPiece();
         updateStatus();
         console.log("Last moves undone.");
+        // After undo, ensure click handlers are robustly re-bound
+        setTimeout(bindSquareClickHandlers, 100);
     } else {
         console.log("No moves to undo.");
     }
@@ -306,6 +309,8 @@ function resignGame() {
         .addClass('alert alert-info')
         .text('Game resigned. Start a new game!');
     console.log("Game resigned.");
+    // After resign, ensure click handlers are robustly re-bound
+    setTimeout(bindSquareClickHandlers, 100);
 }
 
 $(document).ready(function () {
@@ -325,7 +330,7 @@ $(document).ready(function () {
     $('#difficulty').on('change', function () {
         const level = parseInt($(this).val());
         currentSkillLevel = level;
-        if (stockfishIsReady) { // Only send option if Stockfish is ready
+        if (stockfishIsReady) {
             stockfish.postMessage(`setoption name Skill Level value ${level}`);
         } else {
             console.warn("Stockfish not ready, skill level will be set when it is.");
