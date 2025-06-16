@@ -12,6 +12,16 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Loading Animation -->
+<div id="loading-screen">
+    <div class="loader-card">
+        <div class="loader-content">
+            <h1>Welcome to SrijitChess</h1>
+            <p>Loading the chess experience...</p>
+        </div>
+    </div>
+</div>
+
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
@@ -160,5 +170,12 @@
     <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="script.js"></script>
+    <script>
+    window.addEventListener("load", function () {
+        const loader = document.getElementById("loading-screen");
+        loader.classList.add("hide-loader");
+    });
+</script>
+
 </body>
 </html>
