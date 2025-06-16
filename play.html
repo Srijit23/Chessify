@@ -25,6 +25,20 @@
 .highlight-move.square-empty::after {
     content: "";
     display: block;
+    wi#board {
+    touch-action: none; /* Crucial for touch devices */
+    -ms-touch-action: none;
+}
+.highlight-selected {
+    background-color: #f7e06a !important; /* Yellow for selected piece */
+    box-shadow: inset 0 0 1px 4px #b8b17b;
+}
+.highlight-move {
+    background-color: #6aed7a !important; /* Green for legal moves */
+}
+.highlight-move.square-empty::after {
+    content: "";
+    display: block;
     width: 30%;
     height: 30%;
     border-radius: 50%;
@@ -34,7 +48,7 @@
     left: 50%;
     transform: translate(-50%, -50%);
 }
-/* Basic chat styling from last time */
+/* Basic chat styling */
 .chat-box {
     height: 150px;
     overflow-y: auto;
@@ -52,29 +66,7 @@
 }
 .chat-message strong {
     color: #0056b3;
-}
-/* Basic styling for chat box and messages */
-.chat-box {
-    height: 150px; /* Or adjust as needed */
-    overflow-y: auto;
-    border: 1px solid #ccc;
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 5px;
-    background-color: #f9f9f9;
-    display: flex;
-    flex-direction: column;
-}
-
-.chat-message {
-    margin-bottom: 5px;
-    font-size: 0.9em;
-}
-
-.chat-message strong {
-    color: #0056b3; /* Or a color that fits your theme */
-}
-        /* Chess Piece Theme */
+}    /* Chess Piece Theme */
         .white-1e1d7 {
             background-color: #f0d9b5;
         }
