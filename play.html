@@ -417,6 +417,13 @@
                 this.render();
             }
 
+            destroy() {
+                const boardEl = document.getElementById(this.containerId);
+                if (boardEl) {
+                    boardEl.innerHTML = '';
+                }
+            }
+
             render() {
                 const boardEl = document.getElementById(this.containerId);
                 if (!boardEl) return;
@@ -577,7 +584,6 @@
                 const oldFen = this.game.fen();
                 const pieceObj = this.game.get(from);
                 
-                // Handle pawn promotion default to queen if needed
                 let promotion = 'q';
                 const moveResult = this.game.move({ from, to, promotion });
 
@@ -633,9 +639,9 @@
 
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-   
-    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    
     <!-- Multiplayer backend script -->
     <script src="multiplayer.js"></script>
     
