@@ -8,151 +8,244 @@
     
     <!-- Styles -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <style>
-/* Chessboard.js related base styles */
-#board {
-    touch-action: none; /* Crucial for touch devices */
-    -ms-touch-action: none;
-}
+        :root {
+            --board-light: #e2e8f0;
+            --board-dark: #475569;
+            --highlight-light: #fde047;
+            --highlight-dark: #ca8a04;
+        }
 
-/* Sophisticated Highlighting for selected piece and legal moves */
-.highlight-selected {
-    /* A soft, light blue for the selected piece, visually distinct but not jarring */
-    background-color: #DDEEFF !important; /* Very light, clean blue */
-    box-shadow: inset 0 0 1px 4px #81A1C1; /* A muted blue for the inner shadow */
-}
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #0a0b0e;
+            color: #f5f5f7;
+            user-select: none;
+        }
 
-.highlight-move {
-    /* A subtle, semi-transparent overlay for all legal move squares (captures or empty) */
-    /* This allows the underlying board square color to show through, making it look integrated */
-    background-color: rgba(127, 255, 212, 0.4) !important; /* Aquamarine with 40% opacity - a clean, subtle green-blue */
-}
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
 
-.highlight-move.square-empty::after {
-    /* A clear, medium-sized dot for empty squares where a move is possible */
-    content: "";
-    display: block;
-    width: 30%; /* Corrected from 'wi#board {' */
-    height: 30%;
-    border-radius: 50%;
-    background-color: rgba(0, 0, 0, 0.4); /* Semi-transparent darker dot for better visibility */
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
+        /* Titanium Slate Custom Chess Grid (#board) */
+        #board {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            touch-action: none;
+            -ms-touch-action: none;
+            position: relative;
+            background-color: var(--board-dark);
+        }
 
-/* Basic chat styling */
-.chat-box {
-    height: 150px;
-    overflow-y: auto;
-    border: 1px solid #ccc;
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 5px;
-    background-color: #f9f9f9;
-    display: flex;
-    flex-direction: column;
-}
-.chat-message {
-    margin-bottom: 5px;
-    font-size: 0.9em;
-}
-.chat-message strong {
-    color: #0056b3;
-}
+        .square-55d63 {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.08s ease;
+            touch-action: none;
+        }
 
-/* Chess Piece Theme (These should be from chessboard.js or your style.css, but I've included them for completeness) */
-.white-1e1d7 {
-    background-color: #f0d9b5;
-}
-.black-3c85d {
-    background-color: #b58863;
-}
-.board-container {
-    max-width: 480px;
-    margin: auto;
-    padding: 1.5rem;
-    background: white;
-    border-radius: 15px;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-}
+        .white-1e1d7, .square.light { background-color: var(--board-light); }
+        .black-3c85d, .square.dark { background-color: var(--board-dark); }
 
-/* Navbar styling */
-.navbar-toggler {
-    border-color: black;
-    padding: 6px 10px;
-    border-radius: 4px;
-}
-.navbar-toggler-icon {
-    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3e%3cpath stroke='black' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
-}
-.navbar-nav {
-    display: flex;
-    flex-direction: row;
-    gap: 1rem;
-    align-items: center;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-.navbar-nav .nav-item {
-    display: inline-block;
-}
-.navbar-nav .nav-link {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #023047 !important;
-    padding: 10px 0;
-    transition: all 0.3s ease-in-out;
-    border-bottom: none !important;
-}
-.navbar-nav .nav-link:hover {
-    color: #0077b6 !important;
-    transform: translateY(-1px);
-}
+        .square.light.highlighted { background-color: var(--highlight-light) !important; }
+        .square.dark.highlighted { background-color: var(--highlight-dark) !important; }
 
-/* Media queries for responsive navbar (sidebar on smaller screens) */
-@media (max-width: 991.98px) {
-    .navbar-collapse {
-        position: fixed;
-        top: 0;
-        left: -100%;
-        height: 100vh;
-        width: 260px;
-        background: rgba(255, 255, 255, 0.75);
-        backdrop-filter: blur(15px);
-        transition: left 0.4s ease;
-        padding: 80px 20px 20px;
-        box-shadow: 6px 0 25px rgba(0, 0, 0, 0.1);
-        z-index: 1050;
-        border-right: 1px solid rgba(0, 0, 0, 0.05);
-    }
-    .navbar-collapse.show {
-        left: 0;
-    }
-    .navbar-nav {
-        flex-direction: column;
-        gap: 18px;
-    }
-    .sidebar-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.4);
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity 0.4s ease;
-        z-index: 1040;
-    }
-    .sidebar-overlay.active {
-        opacity: 1;
-        visibility: visible;
-    }
-}
-</style>
+        /* Support both custom and multiplayer.js selection classes */
+        .square.selected,
+        .highlight-selected {
+            background-color: rgba(250, 204, 21, 0.65) !important;
+            box-shadow: inset 0 0 0 3px rgba(202, 138, 4, 0.85);
+        }
+
+        .highlight-move {
+            background-color: rgba(56, 189, 248, 0.38) !important;
+        }
+
+        .highlight-move.square-empty::after {
+            content: "";
+            display: block;
+            width: 28%;
+            height: 28%;
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, 0.32);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        .square.in-check {
+            background: radial-gradient(circle, rgba(239,68,68,0.9) 0%, rgba(220,38,38,0.6) 60%, transparent 100%) !important;
+        }
+
+        /* Legal Move Indicators */
+        .legal-dot {
+            width: 26%;
+            height: 26%;
+            border-radius: 9999px;
+            background-color: rgba(0, 0, 0, 0.25);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .legal-capture-ring {
+            position: absolute;
+            inset: 6%;
+            border: 4.5px solid rgba(0, 0, 0, 0.25);
+            border-radius: 9999px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* Chess Piece Styling */
+        .chess-piece {
+            width: 85%;
+            height: 85%;
+            z-index: 15;
+            background: transparent !important;
+            transition: transform 0.14s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.12s ease;
+            filter: drop-shadow(0 4px 5px rgba(0, 0, 0, 0.38));
+            pointer-events: none;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        .square-55d63:hover .chess-piece {
+            transform: scale(1.035);
+        }
+
+        .square-55d63.dragging-origin .chess-piece {
+            opacity: 0.25 !important;
+            transform: scale(0.94) !important;
+        }
+
+        .square-55d63.drag-target-hover {
+            box-shadow: inset 0 0 0 3.5px rgba(255, 255, 255, 0.9) !important;
+        }
+
+        /* Floating Transparent Dragged Piece Layer */
+        #drag-ghost-piece {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 74px;
+            height: 74px;
+            pointer-events: none;
+            z-index: 9999;
+            background: transparent !important;
+            opacity: 0.94;
+            filter: drop-shadow(0 14px 20px rgba(0, 0, 0, 0.55));
+            will-change: transform;
+            display: none;
+        }
+
+        #drag-ghost-piece svg {
+            width: 100%;
+            height: 100%;
+            background: transparent !important;
+        }
+
+        .board-container {
+            max-width: 480px;
+            margin: auto;
+            padding: 1.5rem;
+            background: #181a23;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Basic chat styling */
+        .chat-box {
+            height: 150px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: #12141a;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-message {
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: #cbd5e1;
+        }
+        .chat-message strong {
+            color: #38bdf8;
+        }
+
+        .move-history {
+            max-height: 160px;
+            overflow-y: auto;
+            background: #12141a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px;
+            font-size: 0.85rem;
+        }
+
+        /* Navbar styling */
+        .navbar {
+            background: #12141a;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .navbar-toggler {
+            border-color: rgba(255, 255, 255, 0.2);
+            padding: 6px 10px;
+            border-radius: 4px;
+        }
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3e%3cpath stroke='white' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        }
+        .navbar-nav {
+            display: flex;
+            flex-direction: row;
+            gap: 1rem;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        .navbar-nav .nav-item {
+            display: inline-block;
+        }
+        .navbar-nav .nav-link {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #e2e8f0 !important;
+            padding: 10px 0;
+            transition: all 0.3s ease-in-out;
+        }
+        .navbar-nav .nav-link:hover {
+            color: #38bdf8 !important;
+            transform: translateY(-1px);
+        }
+        .brand-logo {
+            width: 32px;
+            height: 32px;
+            margin-right: 10px;
+        }
+        .airsland-name {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #fff;
+        }
+    </style>
 </head>
 <body>
    <!-- Navigation Bar -->
@@ -181,12 +274,12 @@
             <div class="row justify-content-center mb-4">
                 <div class="col-md-6 text-center">
                     <div id="roomControls">
-                        <h2 class="mb-4">Play Online Chess</h2>
-                        <div class="card">
+                        <h2 class="mb-4 text-white">Play Online Chess</h2>
+                        <div class="card bg-dark text-white border-secondary">
                             <div class="card-body">
-                                <div class="mb-3">
+                                <div class="mb-3 text-start">
                                     <label for="roomId" class="form-label">Room ID</label>
-                                    <input type="text" class="form-control" id="roomId" placeholder="Enter room ID">
+                                    <input type="text" class="form-control bg-secondary text-white border-0" id="roomId" placeholder="Enter room ID">
                                 </div>
                                 <div class="d-grid gap-2">
                                     <button id="createRoom" class="btn btn-primary">Create Room</button>
@@ -199,40 +292,47 @@
             </div>
 
             <div id="gameArea" class="row" style="display: none;">
-                <div class="col-md-8">
+                <div class="col-md-8 mb-4">
                     <div class="board-container">
+                        <!-- ID 'board' preserved for multiplayer.js compatibility -->
                         <div id="board"></div>
-                        <div id="gameStatus" class="alert mt-3" role="alert">
+                        <div id="gameStatus" class="alert alert-dark mt-3 mb-0 text-white border-secondary" role="alert">
                             Waiting for opponent...
                         </div>
                     </div>
                 </div>
 
                 <div class="col-md-4">
-                    <div class="card">
+                    <div class="card bg-dark text-white border-secondary">
                         <div class="card-body">
-                            <h5 class="card-title">Game Info</h5>
+                            <h5 class="card-title text-info mb-3">Game Info</h5>
                             <div class="game-info mb-4">
-                                <p><strong>Room ID:</strong> <span id="currentRoom"></span></p>
-                                <p><strong>Playing as:</strong> <span id="playerColor"></span></p>
-                                <p><strong>Status:</strong> <span id="gameStatusText">Waiting...</span></p>
+                                <p class="mb-2 d-flex align-items-center justify-content-between">
+                                    <span><strong>Room ID:</strong> <span id="currentRoom" class="mono text-warning"></span></span>
+                                    <button id="copyRoomIdBtn" type="button" onclick="copyRoomId()" class="btn btn-sm btn-outline-info py-0 px-2" title="Copy Room ID">
+                                        <i class="fa-regular fa-copy me-1"></i>Copy
+                                    </button>
+                                </p>
+                                <p class="mb-2"><strong>Playing as:</strong> <span id="playerColor"></span></p>
+                                <p class="mb-0"><strong>Status:</strong> <span id="gameStatusText">Waiting...</span></p>
                             </div>
 
                             <div class="game-controls">
-                                <button id="resignBtn" class="btn btn-danger mb-3" disabled>Resign</button>
-                                <button id="offerDrawBtn" class="btn btn-secondary mb-3" disabled>Offer Draw</button>
+                                <div class="d-flex gap-2 mb-3">
+                                    <button id="resignBtn" class="btn btn-outline-danger flex-fill" disabled>Resign</button>
+                                    <button id="offerDrawBtn" class="btn btn-outline-warning flex-fill" disabled>Offer Draw</button>
+                                </div>
                                 
-                                <div class="mt-4">
-                                    <h6>Move History:</h6>
-                                    <div id="moveHistory" class="move-history">
-                                    </div>
+                                <div class="mt-3">
+                                    <h6 class="text-secondary mb-2">Move History:</h6>
+                                    <div id="moveHistory" class="move-history"></div>
                                 </div>
 
-                                <div class="mt-4">
-                                    <h6>Chat:</h6>
-                                    <div id="chatBox" class="chat-box mb-2"></div>
+                                <div class="mt-3">
+                                    <h6 class="text-secondary mb-2">Chat:</h6>
+                                    <div id="chatBox" class="chat-box"></div>
                                     <div class="input-group">
-                                        <input type="text" id="chatInput" class="form-control" placeholder="Type a message...">
+                                        <input type="text" id="chatInput" class="form-control bg-secondary text-white border-0" placeholder="Type a message...">
                                         <button id="sendChat" class="btn btn-primary">Send</button>
                                     </div>
                                 </div>
@@ -244,13 +344,561 @@
         </div>
     </section>
 
-    
+    <!-- Floating Transparent Drag Ghost -->
+    <div id="drag-ghost-piece"></div>
 
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+
+    <!-- Full Chessboard.js Drop-In Replacement with Titanium Slate & 60fps Drag-and-Drop -->
+    <script>
+        function copyRoomId() {
+            const roomEl = document.getElementById('currentRoom');
+            const btn = document.getElementById('copyRoomIdBtn');
+            const roomText = roomEl ? roomEl.textContent.trim() : '';
+            if (!roomText) return;
+
+            const showCopied = () => {
+                if (!btn) return;
+                const prevHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check me-1"></i>Copied!';
+                btn.classList.replace('btn-outline-info', 'btn-success');
+                setTimeout(() => {
+                    btn.innerHTML = prevHtml;
+                    btn.classList.replace('btn-success', 'btn-outline-info');
+                }, 1600);
+            };
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(roomText).then(showCopied).catch(() => fallbackCopy(roomText, showCopied));
+            } else {
+                fallbackCopy(roomText, showCopied);
+            }
+        }
+
+        function fallbackCopy(text, callback) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); if (callback) callback(); } catch (e) {}
+            ta.remove();
+        }
+
+        const PIECE_SVGS = {
+            wP: `<svg viewBox="0 0 45 45" class="chess-piece piece-417db" data-piece="wP"><path d="M 22.5,9 C 19.5,9 17,11.5 17,14.5 C 17,16.8 18.4,18.7 20.4,19.5 C 17.5,21 15.5,24 15.5,28.5 C 15.5,30.5 19.5,31.5 19.5,31.5 L 12.5,35.5 C 11.5,36.5 11,38 11,39.5 L 34,39.5 C 34,38 33.5,36.5 32.5,35.5 L 25.5,31.5 C 25.5,31.5 29.5,30.5 29.5,28.5 C 29.5,24 27.5,21 24.6,19.5 C 26.6,18.7 28,16.8 28,14.5 C 28,11.5 25.5,9 22.5,9 z" fill="#fff" stroke="#1e293b" stroke-width="2" stroke-linecap="round"/></svg>`,
+            wR: `<svg viewBox="0 0 45 45" class="chess-piece piece-417db" data-piece="wR"><g fill="#fff" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M 9,39 L 36,39 L 36,36 L 9,36 L 9,39 z"/><path d="M 12,36 L 12,32 L 33,32 L 33,36 L 12,36 z"/><path d="M 11,14 L 11,9 L 15,9 L 15,11 L 20,11 L 20,9 L 25,9 L 25,11 L 30,11 L 30,9 L 34,9 L 34,14"/><path d="M 34,14 L 31,17 L 14,17 L 11,14"/><path d="M 31,17 L 31,29.5 L 14,29.5 L 14,17"/><path d="M 31,29.5 L 32.5,32 L 12.5,32 L 14,29.5"/></g></svg>`,
+            wN: `<svg viewBox="0 0 45 45" class="chess-piece piece-417db" data-piece="wN"><g fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M 22,10 C 32.5,11 38.5,18 38,39 L 15,39 C 15,30 25,32.5 23,18" fill="#fff"/><path d="M 24,18 C 24.38,20.91 18.45,25.37 16,27 C 13,29 13.18,31.34 11,31 C 9.958,30.06 12.41,27.96 11,28 C 10,28 11.19,29.23 10,30 C 9,30 5.997,31 6,26 C 6,24 12,14 12,14 C 12,14 13.89,12.1 14,10.5 C 13.27,9.506 13.5,8.5 13.5,7.5 C 14.5,6.5 16.5,10 16.5,10 L 18.5,10 C 18.5,10 19.28,8.008 21,7 C 22,7 22,10 22,10" fill="#fff"/><circle cx="15.5" cy="14.5" r="1.2" fill="#1e293b"/></g></svg>`,
+            wB: `<svg viewBox="0 0 45 45" class="chess-piece piece-417db" data-piece="wB"><g fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g fill="#fff"><path d="M 9,36 C 12.39,35.03 19.11,36.43 22.5,34 C 25.89,36.43 32.61,35.03 36,36 C 36,36 37.65,36.54 39,38 C 38.32,38.97 37.35,38.99 36,38.5 C 32.61,37.53 25.89,38.96 22.5,37.5 C 19.11,38.96 12.39,37.53 9,38.5 C 7.646,38.99 6.677,38.97 6,38 C 7.354,36.06 9,36 9,36 z"/><path d="M 15,32 C 17.5,34.5 27.5,34.5 30,32 C 30.5,30.5 30,30 30,30 C 30,27.5 27.5,26 27.5,26 C 33,24.5 33.5,14.5 22.5,10.5 C 11.5,14.5 12,24.5 17.5,26 C 17.5,26 15,27.5 15,30 C 15,30 14.5,30.5 15,32 z"/><circle cx="22.5" cy="8" r="2.2"/></g><path d="M 17.5,26 L 27.5,26 M 15,30 L 30,30 M 22.5,15.5 L 22.5,20.5 M 20,18 L 25,18"/></g></svg>`,
+            wQ: `<svg viewBox="0 0 45 45" class="chess-piece piece-417db" data-piece="wQ"><g fill="#fff" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M 9,26 C 17.5,24.5 30,24.5 36,26 L 38.5,13.5 L 31,25 L 30.7,10.9 L 25.5,24.5 L 22.5,10 L 19.5,24.5 L 14.3,10.9 L 14,25 L 6.5,13.5 L 9,26 z"/><path d="M 9,26 C 9,28 10.5,28 11.5,30 C 12.5,31.5 12.5,31 12,33.5 C 10.5,34.5 11,36 11,36 C 9.5,37.5 11,38.5 11,38.5 C 17.5,39.5 27.5,39.5 34,38.5 C 34,38.5 35.5,37.5 34,36 C 34,36 34.5,34.5 33,33.5 C 32.5,31 32.5,31.5 33.5,30 C 34.5,28 36,28 36,26 C 27.5,24.5 17.5,24.5 9,26 z"/><circle cx="6" cy="12" r="2"/><circle cx="14" cy="9" r="2"/><circle cx="22.5" cy="8" r="2"/><circle cx="31" cy="9" r="2"/><circle cx="39" cy="12" r="2"/></g></svg>`,
+            wK: `<svg viewBox="0 0 45 45" class="chess-piece piece-417db" data-piece="wK"><g fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M 22.5,11.63 L 22.5,6" stroke-width="2.5"/><path d="M 20,8 L 25,8" stroke-width="2.5"/><path d="M 22.5,25 C 22.5,25 27,17.5 25.5,14.5 C 25.5,14.5 24.5,12 22.5,12 C 20.5,12 19.5,14.5 19.5,14.5 C 18,17.5 22.5,25 22.5,25" fill="#fff"/><path d="M 11.5,37 C 17,40.5 27,40.5 32.5,37 L 32.5,30 C 32.5,30 41.5,25.5 38.5,19.5 C 34.5,13 25,16 22.5,23.5 L 22.5,27 L 22.5,23.5 C 19,16 9.5,13 6.5,19.5 C 3.5,25.5 11.5,29.5 11.5,29.5 L 11.5,37 z" fill="#fff"/><path d="M 11.5,30 C 17,27 27,27 32.5,30 M 11.5,33.5 C 17,30.5 27,30.5 32.5,33.5 M 11.5,37 C 17,34 27,34 32.5,37"/></g></svg>`,
+            bP: `<svg viewBox="0 0 45 45" class="chess-piece piece-417db" data-piece="bP"><path d="M 22.5,9 C 19.5,9 17,11.5 17,14.5 C 17,16.8 18.4,18.7 20.4,19.5 C 17.5,21 15.5,24 15.5,28.5 C 15.5,30.5 19.5,31.5 19.5,31.5 L 12.5,35.5 C 11.5,36.5 11,38 11,39.5 L 34,39.5 C 34,38 33.5,36.5 32.5,35.5 L 25.5,31.5 C 25.5,31.5 29.5,30.5 29.5,28.5 C 29.5,24 27.5,21 24.6,19.5 C 26.6,18.7 28,16.8 28,14.5 C 28,11.5 25.5,9 22.5,9 z" fill="#262421" stroke="#0f172a" stroke-width="2"/><path d="M 19,14.5 A 3.5,3.5 0 0 1 22.5,11" stroke="#64748b" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>`,
+            bR: `<svg viewBox="0 0 45 45" class="chess-piece piece-417db" data-piece="bR"><g fill="#262421" stroke="#0f172a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M 9,39 L 36,39 L 36,36 L 9,36 L 9,39 z"/><path d="M 12.5,32 L 14,29.5 L 31,29.5 L 32.5,32 L 12.5,32 z"/><path d="M 12,36 L 12,32 L 33,32 L 33,36 L 12,36 z"/><path d="M 14,29.5 L 14,16.5 L 31,16.5 L 31,29.5 L 14,29.5 z"/><path d="M 14,16.5 L 11,14 L 34,14 L 31,16.5 L 14,16.5 z"/><path d="M 11,14 L 11,9 L 15,9 L 15,11 L 20,11 L 20,9 L 25,9 L 25,11 L 30,11 L 30,9 L 34,9 L 34,14 L 11,14 z"/><path d="M 14,16.5 L 31,16.5 M 14,29.5 L 31,29.5" stroke="#94a3b8" stroke-width="1.2"/></g></svg>`,
+            bN: `<svg viewBox="0 0 45 45" class="chess-piece piece-417db" data-piece="bN"><g fill="none" stroke="#0f172a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M 22,10 C 32.5,11 38.5,18 38,39 L 15,39 C 15,30 25,32.5 23,18" fill="#262421"/><path d="M 24,18 C 24.38,20.91 18.45,25.37 16,27 C 13,29 13.18,31.34 11,31 C 9.958,30.06 12.41,27.96 11,28 C 10,28 11.19,29.23 10,30 C 9,30 5.997,31 6,26 C 6,24 12,14 12,14 C 12,14 13.89,12.1 14,10.5 C 13.27,9.506 13.5,8.5 13.5,7.5 C 14.5,6.5 16.5,10 16.5,10 L 18.5,10 C 18.5,10 19.28,8.008 21,7 C 22,7 22,10 22,10" fill="#262421"/><circle cx="15.5" cy="14.5" r="1.3" fill="#e2e8f0" stroke="none"/><path d="M 24.5,12 C 30,13.5 34.5,19.5 35,36" stroke="#64748b" stroke-width="1.3"/></g></svg>`,
+            bB: `<svg viewBox="0 0 45 45" class="chess-piece piece-417db" data-piece="bB"><g fill="#262421" stroke="#0f172a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M 9,36 C 12.39,35.03 19.11,36.43 22.5,34 C 25.89,36.43 32.61,35.03 36,36 C 36,36 37.65,36.54 39,38 C 38.32,38.97 37.35,38.99 36,38.5 C 32.61,37.53 25.89,38.96 22.5,37.5 C 19.11,38.96 12.39,37.53 9,38.5 C 7.646,38.99 6.677,38.97 6,38 C 7.354,36.06 9,36 9,36 z"/><path d="M 15,32 C 17.5,34.5 27.5,34.5 30,32 C 30.5,30.5 30,30 30,30 C 30,27.5 27.5,26 27.5,26 C 33,24.5 33.5,14.5 22.5,10.5 C 11.5,14.5 12,24.5 17.5,26 C 17.5,26 15,27.5 15,30 C 15,30 14.5,30.5 15,32 z"/><circle cx="22.5" cy="8" r="2.2"/><path d="M 17.5,26 L 27.5,26 M 15,30 L 30,30 M 22.5,15.5 L 22.5,20.5 M 20,18 L 25,18" stroke="#94a3b8" stroke-width="1.5"/></g></svg>`,
+            bQ: `<svg viewBox="0 0 45 45" class="chess-piece piece-417db" data-piece="bQ"><g fill="#262421" stroke="#0f172a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M 9,26 C 17.5,24.5 30,24.5 36,26 L 38.5,13.5 L 31,25 L 30.7,10.9 L 25.5,24.5 L 22.5,10 L 19.5,24.5 L 14.3,10.9 L 14,25 L 6.5,13.5 L 9,26 z"/><path d="M 9,26 C 9,28 10.5,28 11.5,30 C 12.5,31.5 12.5,31 12,33.5 C 10.5,34.5 11,36 11,36 C 9.5,37.5 11,38.5 11,38.5 C 17.5,39.5 27.5,39.5 34,38.5 C 34,38.5 35.5,37.5 34,36 C 34,36 34.5,34.5 33,33.5 C 32.5,31 32.5,31.5 33.5,30 C 34.5,28 36,28 36,26 C 27.5,24.5 17.5,24.5 9,26 z"/><circle cx="6" cy="12" r="2"/><circle cx="14" cy="9" r="2"/><circle cx="22.5" cy="8" r="2"/><circle cx="31" cy="9" r="2"/><circle cx="39" cy="12" r="2"/><path d="M 11.5,30 C 18,28.5 27,28.5 33.5,30 M 12,33.5 C 18.5,32 26.5,32 33,33.5" stroke="#94a3b8" stroke-width="1.3"/></g></svg>`,
+            bK: `<svg viewBox="0 0 45 45" class="chess-piece piece-417db" data-piece="bK"><g fill="#262421" stroke="#0f172a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M 22.5,11.63 L 22.5,6" stroke-width="2.5"/><path d="M 20,8 L 25,8" stroke-width="2.5"/><path d="M 22.5,25 C 22.5,25 27,17.5 25.5,14.5 C 25.5,14.5 24.5,12 22.5,12 C 20.5,12 19.5,14.5 19.5,14.5 C 18,17.5 22.5,25 22.5,25"/><path d="M 11.5,37 C 17,40.5 27,40.5 32.5,37 L 32.5,30 C 32.5,30 41.5,25.5 38.5,19.5 C 34.5,13 25,16 22.5,23.5 L 22.5,27 L 22.5,23.5 C 19,16 9.5,13 6.5,19.5 C 3.5,25.5 11.5,29.5 11.5,29.5 L 11.5,37 z"/><path d="M 11.5,30 C 17,27 27,27 32.5,30 M 11.5,33.5 C 17,30.5 27,30.5 32.5,33.5 M 11.5,37 C 17,34 27,34 32.5,37" stroke="#94a3b8" stroke-width="1.3"/></g></svg>`
+        };
+
+        const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
+
+        function fenToObj(fen) {
+            if (!fen || typeof fen !== 'string') return {};
+            if (fen === 'start') fen = START_FEN;
+            const placement = fen.trim().split(/\s+/)[0];
+            const rows = placement.split('/');
+            if (rows.length !== 8) return {};
+            const position = {};
+            const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+
+            for (let r = 0; r < 8; r++) {
+                const rank = 8 - r;
+                let fileIdx = 0;
+                const rowStr = rows[r];
+                for (let i = 0; i < rowStr.length; i++) {
+                    const ch = rowStr[i];
+                    if (ch >= '1' && ch <= '8') {
+                        fileIdx += parseInt(ch, 10);
+                    } else {
+                        const color = ch === ch.toUpperCase() ? 'w' : 'b';
+                        const pieceType = ch.toUpperCase();
+                        const sq = files[fileIdx] + rank;
+                        position[sq] = color + pieceType;
+                        fileIdx++;
+                    }
+                }
+            }
+            return position;
+        }
+
+        function objToFen(obj) {
+            if (!obj || typeof obj !== 'object') return '8/8/8/8/8/8/8/8';
+            const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+            const rows = [];
+            for (let rank = 8; rank >= 1; rank--) {
+                let empty = 0;
+                let rowStr = '';
+                for (let f = 0; f < 8; f++) {
+                    const sq = files[f] + rank;
+                    const p = obj[sq];
+                    if (!p) {
+                        empty++;
+                    } else {
+                        if (empty > 0) {
+                            rowStr += empty;
+                            empty = 0;
+                        }
+                        const color = p[0];
+                        const type = p[1];
+                        rowStr += color === 'w' ? type.toUpperCase() : type.toLowerCase();
+                    }
+                }
+                if (empty > 0) rowStr += empty;
+                rows.push(rowStr);
+            }
+            return rows.join('/');
+        }
+
+        class ChessboardCompat {
+            constructor(containerElOrId, config = {}) {
+                if (typeof containerElOrId === 'string') {
+                    this.containerId = containerElOrId.replace(/^#/, '');
+                    this.boardEl = document.getElementById(this.containerId);
+                } else if (containerElOrId && containerElOrId.jquery) {
+                    this.boardEl = containerElOrId[0];
+                    this.containerId = this.boardEl ? this.boardEl.id : 'board';
+                } else {
+                    this.boardEl = containerElOrId;
+                    this.containerId = this.boardEl ? this.boardEl.id : 'board';
+                }
+
+                if (typeof config === 'string') {
+                    config = { position: config };
+                }
+                this.config = config || {};
+                this.orientationVal = (this.config.orientation || 'white').toLowerCase();
+                this.posObj = {};
+
+                if (this.config.position) {
+                    this.setPositionInternal(this.config.position);
+                }
+
+                this.selectedSquare = null;
+                this.dragState = {
+                    active: false,
+                    hasMoved: false,
+                    fromSquare: null,
+                    pieceCode: null,
+                    startX: 0,
+                    startY: 0,
+                    hoveredSquare: null
+                };
+                this.suppressNextClick = false;
+
+                this.boundPointerMove = (e) => this.onPointerMove(e);
+                this.boundPointerUp = (e) => this.onPointerUp(e);
+                this.boundClickCapture = (e) => {
+                    if (this.suppressNextClick) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        this.suppressNextClick = false;
+                    }
+                };
+
+                window.addEventListener('pointermove', this.boundPointerMove, { passive: false });
+                window.addEventListener('pointerup', this.boundPointerUp);
+                window.addEventListener('pointercancel', this.boundPointerUp);
+                if (this.boardEl) {
+                    this.boardEl.addEventListener('click', this.boundClickCapture, true);
+                }
+
+                this.buildSquaresDOM();
+                this.updatePiecesInPlace();
+            }
+
+            setPositionInternal(pos) {
+                if (pos === 'start') {
+                    this.posObj = fenToObj(START_FEN);
+                } else if (typeof pos === 'string') {
+                    this.posObj = fenToObj(pos);
+                } else if (pos && typeof pos === 'object') {
+                    this.posObj = Object.assign({}, pos);
+                }
+            }
+
+            getPositionObject() {
+                return Object.assign({}, this.posObj);
+            }
+
+            position(pos, useAnimation) {
+                if (pos === undefined) {
+                    return this.getPositionObject();
+                }
+                if (pos === 'fen') {
+                    return objToFen(this.posObj);
+                }
+                const oldPos = this.getPositionObject();
+                this.setPositionInternal(pos);
+                this.selectedSquare = null;
+                this.updatePiecesInPlace();
+                if (typeof this.config.onChange === 'function') {
+                    this.config.onChange(oldPos, this.getPositionObject());
+                }
+                return this.getPositionObject();
+            }
+
+            orientation(ori) {
+                if (ori === undefined) return this.orientationVal;
+                const norm = String(ori).toLowerCase();
+                if ((norm === 'white' || norm === 'black') && norm !== this.orientationVal) {
+                    this.orientationVal = norm;
+                    this.buildSquaresDOM();
+                    this.updatePiecesInPlace();
+                } else if (norm === 'flip') {
+                    this.flip();
+                }
+                return this.orientationVal;
+            }
+
+            flip() {
+                this.orientationVal = this.orientationVal === 'white' ? 'black' : 'white';
+                this.buildSquaresDOM();
+                this.updatePiecesInPlace();
+            }
+
+            clear() {
+                this.posObj = {};
+                this.selectedSquare = null;
+                this.updatePiecesInPlace();
+            }
+
+            start() {
+                this.posObj = fenToObj(START_FEN);
+                this.selectedSquare = null;
+                this.updatePiecesInPlace();
+            }
+
+            fen() {
+                return objToFen(this.posObj);
+            }
+
+            resize() {
+                // Keep existing square DOM nodes intact so multiplayer.js click handlers remain bound
+                this.updatePiecesInPlace();
+            }
+
+            destroy() {
+                window.removeEventListener('pointermove', this.boundPointerMove);
+                window.removeEventListener('pointerup', this.boundPointerUp);
+                window.removeEventListener('pointercancel', this.boundPointerUp);
+                if (this.boardEl) {
+                    this.boardEl.removeEventListener('click', this.boundClickCapture, true);
+                    this.boardEl.innerHTML = '';
+                }
+            }
+
+            /* Build the 64 square divs once per orientation so bound listeners stay alive */
+            buildSquaresDOM() {
+                const boardEl = document.getElementById(this.containerId) || this.boardEl;
+                if (!boardEl) return;
+                this.boardEl = boardEl;
+                boardEl.innerHTML = '';
+
+                const flipped = this.orientationVal === 'black';
+                for (let rIdx = 0; rIdx < 8; rIdx++) {
+                    for (let cIdx = 0; cIdx < 8; cIdx++) {
+                        const row = flipped ? 7 - rIdx : rIdx;
+                        const col = flipped ? 7 - cIdx : cIdx;
+                        const fileChar = String.fromCharCode(97 + col);
+                        const rankChar = String(8 - row);
+                        const sqName = fileChar + rankChar;
+                        const isLight = (row + col) % 2 === 0;
+
+                        const sqDiv = document.createElement('div');
+                        sqDiv.className = `square square-55d63 ${isLight ? 'light white-1e1d7' : 'dark black-3c85d'} square-${sqName} square-empty`;
+                        sqDiv.dataset.square = sqName;
+                        sqDiv.setAttribute('data-square', sqName);
+
+                        // Edge rank & file coordinates
+                        if (cIdx === 0) {
+                            const rankSpan = document.createElement('span');
+                            rankSpan.className = 'coord-rank';
+                            rankSpan.style.cssText = `position:absolute;top:2px;left:4px;font-size:10px;font-weight:700;line-height:1;pointer-events:none;color:${isLight ? '#475569' : '#e2e8f0'};`;
+                            rankSpan.textContent = rankChar;
+                            sqDiv.appendChild(rankSpan);
+                        }
+                        if (rIdx === 7) {
+                            const fileSpan = document.createElement('span');
+                            fileSpan.className = 'coord-file';
+                            fileSpan.style.cssText = `position:absolute;bottom:2px;right:4px;font-size:10px;font-weight:700;line-height:1;pointer-events:none;color:${isLight ? '#475569' : '#e2e8f0'};`;
+                            fileSpan.textContent = fileChar;
+                            sqDiv.appendChild(fileSpan);
+                        }
+
+                        sqDiv.addEventListener('pointerdown', (e) => this.onSquarePointerDown(e, sqName));
+                        boardEl.appendChild(sqDiv);
+                    }
+                }
+            }
+
+            /* Update SVG pieces inside the existing 64 square divs without destroying the squares */
+            updatePiecesInPlace() {
+                if (!this.boardEl) return;
+                const squares = this.boardEl.querySelectorAll('.square-55d63');
+                squares.forEach((sqDiv) => {
+                    const sqName = sqDiv.getAttribute('data-square');
+                    // Remove existing piece SVG if any
+                    const oldPiece = sqDiv.querySelector('.chess-piece');
+                    if (oldPiece) oldPiece.remove();
+
+                    // Remove temporary drag classes
+                    sqDiv.classList.remove('dragging-origin', 'drag-target-hover', 'selected');
+                    const oldDot = sqDiv.querySelector('.legal-dot, .legal-capture-ring');
+                    if (oldDot) oldDot.remove();
+
+                    const pieceCode = this.posObj[sqName];
+                    if (pieceCode && PIECE_SVGS[pieceCode]) {
+                        sqDiv.classList.remove('square-empty');
+                        sqDiv.insertAdjacentHTML('beforeend', PIECE_SVGS[pieceCode]);
+                    } else {
+                        sqDiv.classList.add('square-empty');
+                    }
+                });
+            }
+
+            onSquarePointerDown(e, sqName) {
+                if (e.button !== undefined && e.button !== 0) return;
+
+                // If a square was already selected via our fallback click-to-move, check if clicking a legal destination
+                if (this.selectedSquare && this.selectedSquare !== sqName && typeof this.config.onDrop === 'function') {
+                    const fromPiece = this.posObj[this.selectedSquare];
+                    if (fromPiece) {
+                        const targetPiece = this.posObj[sqName];
+                        // If clicking an empty square or opponent piece, attempt move via onDrop
+                        if (!targetPiece || targetPiece[0] !== fromPiece[0]) {
+                            const moved = this.attemptDropMove(this.selectedSquare, sqName, fromPiece);
+                            if (moved) {
+                                this.suppressNextClick = true;
+                                return;
+                            }
+                        }
+                    }
+                }
+
+                const pieceCode = this.posObj[sqName];
+                if (!pieceCode) {
+                    this.selectedSquare = null;
+                    this.clearCustomHighlights();
+                    return;
+                }
+
+                // Prepare potential drag without altering DOM on pointerdown (so native click events still fire cleanly)
+                this.dragState = {
+                    active: true,
+                    hasMoved: false,
+                    fromSquare: sqName,
+                    pieceCode: pieceCode,
+                    startX: e.clientX,
+                    startY: e.clientY,
+                    hoveredSquare: sqName
+                };
+            }
+
+            onPointerMove(e) {
+                if (!this.dragState.active) return;
+                const dx = e.clientX - this.dragState.startX;
+                const dy = e.clientY - this.dragState.startY;
+
+                if (!this.dragState.hasMoved && Math.hypot(dx, dy) > 5) {
+                    // Check onDragStart with exact chessboard.js signature: (source, pieceString, positionObj, orientation)
+                    if (typeof this.config.onDragStart === 'function') {
+                        const allow = this.config.onDragStart(
+                            this.dragState.fromSquare,
+                            this.dragState.pieceCode,
+                            this.getPositionObject(),
+                            this.orientationVal
+                        );
+                        if (allow === false) {
+                            this.dragState.active = false;
+                            return;
+                        }
+                    }
+
+                    this.dragState.hasMoved = true;
+                    const originEl = this.boardEl?.querySelector(`.square-55d63[data-square="${this.dragState.fromSquare}"]`);
+                    if (originEl) {
+                        originEl.classList.add('dragging-origin');
+                        // If multiplayer.js uses click-to-move instead of onDrop, select origin square automatically
+                        if (typeof this.config.onDrop !== 'function' && !originEl.classList.contains('highlight-selected')) {
+                            originEl.click();
+                        }
+                    }
+
+                    this.showLegalMovesForSquare(this.dragState.fromSquare);
+
+                    const ghostEl = document.getElementById('drag-ghost-piece');
+                    if (ghostEl && this.boardEl) {
+                        const sqSize = this.boardEl.getBoundingClientRect().width / 8;
+                        ghostEl.style.width = `${sqSize * 1.08}px`;
+                        ghostEl.style.height = `${sqSize * 1.08}px`;
+                        ghostEl.innerHTML = PIECE_SVGS[this.dragState.pieceCode] || '';
+                        ghostEl.style.display = 'block';
+                    }
+                }
+
+                if (this.dragState.hasMoved) {
+                    e.preventDefault();
+                    const ghostEl = document.getElementById('drag-ghost-piece');
+                    if (ghostEl) {
+                        ghostEl.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
+                    }
+
+                    const targetSq = this.getSquareFromClientXY(e.clientX, e.clientY);
+                    if (targetSq !== this.dragState.hoveredSquare) {
+                        if (this.dragState.hoveredSquare) {
+                            this.boardEl?.querySelector(`.square-55d63[data-square="${this.dragState.hoveredSquare}"]`)?.classList.remove('drag-target-hover');
+                        }
+                        this.dragState.hoveredSquare = targetSq;
+                        if (targetSq) {
+                            this.boardEl?.querySelector(`.square-55d63[data-square="${targetSq}"]`)?.classList.add('drag-target-hover');
+                        }
+                    }
+                }
+            }
+
+            onPointerUp(e) {
+                if (!this.dragState.active) return;
+                const wasDragging = this.dragState.hasMoved;
+                const fromSq = this.dragState.fromSquare;
+                const pieceCode = this.dragState.pieceCode;
+                const dropSq = this.getSquareFromClientXY(e.clientX, e.clientY);
+
+                this.dragState.active = false;
+                this.dragState.hasMoved = false;
+
+                const ghostEl = document.getElementById('drag-ghost-piece');
+                if (ghostEl) {
+                    ghostEl.style.display = 'none';
+                    ghostEl.innerHTML = '';
+                }
+
+                this.boardEl?.querySelectorAll('.dragging-origin, .drag-target-hover').forEach(el => {
+                    el.classList.remove('dragging-origin', 'drag-target-hover');
+                });
+
+                if (wasDragging) {
+                    this.suppressNextClick = true;
+                    setTimeout(() => { this.suppressNextClick = false; }, 50);
+                    this.clearCustomHighlights();
+
+                    if (dropSq && dropSq !== fromSq) {
+                        if (typeof this.config.onDrop === 'function') {
+                            this.attemptDropMove(fromSq, dropSq, pieceCode);
+                        } else {
+                            // Bridge drag-and-drop to multiplayer.js click handler if onDrop wasn't used
+                            const fromEl = this.boardEl?.querySelector(`.square-55d63[data-square="${fromSq}"]`);
+                            const dropEl = this.boardEl?.querySelector(`.square-55d63[data-square="${dropSq}"]`);
+                            if (fromEl && !fromEl.classList.contains('highlight-selected')) {
+                                fromEl.click();
+                            }
+                            if (dropEl) {
+                                dropEl.click();
+                            }
+                        }
+                    }
+                } else {
+                    // User clicked without dragging: if multiplayer.js uses onDrop instead of click handlers, support click-to-move too
+                    if (typeof this.config.onDrop === 'function') {
+                        if (typeof this.config.onDragStart === 'function') {
+                            const allow = this.config.onDragStart(fromSq, pieceCode, this.getPositionObject(), this.orientationVal);
+                            if (allow === false) return;
+                        }
+                        this.selectedSquare = fromSq;
+                        this.clearCustomHighlights();
+                        this.boardEl?.querySelector(`.square-55d63[data-square="${fromSq}"]`)?.classList.add('selected');
+                        this.showLegalMovesForSquare(fromSq);
+                    }
+                }
+            }
+
+            attemptDropMove(fromSq, toSq, pieceCode) {
+                const oldPos = this.getPositionObject();
+                const newPos = this.getPositionObject();
+                delete newPos[fromSq];
+                newPos[toSq] = pieceCode;
+
+                if (typeof this.config.onDrop === 'function') {
+                    const dropRes = this.config.onDrop(fromSq, toSq, pieceCode, newPos, oldPos, this.orientationVal);
+                    if (dropRes === 'snapback' || dropRes === 'trash') {
+                        this.posObj = oldPos;
+                        this.selectedSquare = null;
+                        this.updatePiecesInPlace();
+                        return false;
+                    }
+                }
+
+                this.posObj = newPos;
+                this.selectedSquare = null;
+                this.updatePiecesInPlace();
+
+                if (typeof this.config.onSnapEnd === 'function') {
+                    this.config.onSnapEnd(fromSq, toSq, pieceCode);
+                }
+                return true;
+            }
+
+            showLegalMovesForSquare(sqName) {
+                try {
+                    // Use multiplayer.js global `game` instance if available
+                    const activeChess = (typeof game !== 'undefined' && game && typeof game.moves === 'function') ? game : null;
+                    if (!activeChess) return;
+                    const moves = activeChess.moves({ square: sqName, verbose: true });
+                    moves.forEach(m => {
+                        const targetEl = this.boardEl?.querySelector(`.square-55d63[data-square="${m.to}"]`);
+                        if (!targetEl || targetEl.querySelector('.legal-dot, .legal-capture-ring')) return;
+                        if (this.posObj[m.to] || (m.flags && m.flags.includes('e'))) {
+                            const ring = document.createElement('div');
+                            ring.className = 'legal-capture-ring';
+                            targetEl.appendChild(ring);
+                        } else {
+                            const dot = document.createElement('div');
+                            dot.className = 'legal-dot';
+                            targetEl.appendChild(dot);
+                        }
+                    });
+                } catch (e) {}
+            }
+
+            clearCustomHighlights() {
+                this.boardEl?.querySelectorAll('.square-55d63.selected').forEach(el => el.classList.remove('selected'));
+                this.boardEl?.querySelectorAll('.legal-dot, .legal-capture-ring').forEach(el => el.remove());
+            }
+
+            getSquareFromClientXY(clientX, clientY) {
+                if (!this.boardEl) return null;
+                const rect = this.boardEl.getBoundingClientRect();
+                if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) return null;
+                const cIdx = Math.min(7, Math.max(0, Math.floor(((clientX - rect.left) / rect.width) * 8)));
+                const rIdx = Math.min(7, Math.max(0, Math.floor(((clientY - rect.top) / rect.height) * 8)));
+                const flipped = this.orientationVal === 'black';
+                const row = flipped ? 7 - rIdx : rIdx;
+                const col = flipped ? 7 - cIdx : cIdx;
+                return String.fromCharCode(97 + col) + String(8 - row);
+            }
+        }
+
+        // Expose both Chessboard and ChessBoard globals + static helpers expected by multiplayer.js
+        window.Chessboard = function(containerId, config) {
+            return new ChessboardCompat(containerId, config);
+        };
+        window.Chessboard.fenToObj = fenToObj;
+        window.Chessboard.objToFen = objToFen;
+        window.ChessBoard = window.Chessboard;
+    </script>
+
+    <!-- Multiplayer backend script -->
     <script src="multiplayer.js"></script>
     
     <script>
